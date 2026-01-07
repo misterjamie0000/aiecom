@@ -15,6 +15,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Categories from "./pages/Categories";
 import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
 import NewArrivals from "./pages/NewArrivals";
 import Bestsellers from "./pages/Bestsellers";
 import Offers from "./pages/Offers";
@@ -64,6 +65,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="/products" element={<Products />} />
+              <Route path="/products/:slug" element={<ProductDetail />} />
               <Route path="/new-arrivals" element={<NewArrivals />} />
               <Route path="/bestsellers" element={<Bestsellers />} />
               <Route path="/offers" element={<Offers />} />
