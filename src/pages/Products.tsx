@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Package, Search, Filter, ShoppingCart, Heart } from 'lucide-react';
+import { Package, Search, Filter, ShoppingCart, Heart, Star } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAddToCart } from '@/hooks/useCart';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Products() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const addToCart = useAddToCart();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
@@ -49,9 +56,15 @@ export default function Products() {
     return matchesSearch && matchesCategory;
   });
 
-  const calculateDiscountedPrice = (price: number, discountPercent: number | null) => {
-    if (!discountPercent) return price;
-    return price - (price * discountPercent / 100);
+  const handleAddToCart = (productId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast.error('Please login to add items to cart');
+      navigate('/auth');
+      return;
+    }
+    addToCart.mutate({ productId });
   };
 
   return (
@@ -127,57 +140,68 @@ export default function Products() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
             >
-              <Card className="overflow-hidden group hover:shadow-lg transition-shadow cursor-pointer">
-                <div className="relative aspect-square bg-muted">
-                  {product.discount_percent && product.discount_percent > 0 && (
-                    <Badge className="absolute top-2 left-2 bg-destructive text-destructive-foreground">
-                      -{product.discount_percent}%
-                    </Badge>
-                  )}
-                  {product.is_trending && (
-                    <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
-                      Trending
-                    </Badge>
-                  )}
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package className="w-16 h-16 text-muted-foreground/50" />
-                  </div>
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <Button size="icon" variant="secondary" className="rounded-full">
-                      <ShoppingCart className="h-4 w-4" />
-                    </Button>
-                    <Button size="icon" variant="secondary" className="rounded-full">
-                      <Heart className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <CardContent className="p-4">
-                  <p className="text-xs text-muted-foreground mb-1">
-                    {(product.categories as any)?.name || 'Uncategorized'}
-                  </p>
-                  <h3 className="font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-                    {product.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                    {product.short_description || product.description}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-primary">
-                      ₹{calculateDiscountedPrice(Number(product.price), product.discount_percent).toLocaleString()}
-                    </span>
+              <Link to={`/products/${product.slug}`}>
+                <Card className="overflow-hidden group hover:shadow-lg transition-shadow cursor-pointer">
+                  <div className="relative aspect-square bg-muted">
                     {product.discount_percent && product.discount_percent > 0 && (
-                      <span className="text-sm text-muted-foreground line-through">
+                      <Badge className="absolute top-2 left-2 bg-destructive text-destructive-foreground">
+                        -{product.discount_percent}%
+                      </Badge>
+                    )}
+                    {product.is_trending && (
+                      <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
+                        Trending
+                      </Badge>
+                    )}
+                    <img 
+                      src={`https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop`}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <Button 
+                        size="icon" 
+                        variant="secondary" 
+                        className="rounded-full"
+                        onClick={(e) => handleAddToCart(product.id, e)}
+                        disabled={addToCart.isPending}
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="secondary" className="rounded-full">
+                        <Heart className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <CardContent className="p-4">
+                    <p className="text-xs text-muted-foreground mb-1">
+                      {(product.categories as any)?.name || 'Uncategorized'}
+                    </p>
+                    <h3 className="font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center gap-1 mb-2">
+                      <Star className="w-3.5 h-3.5 fill-primary text-primary" />
+                      <span className="text-sm text-muted-foreground">4.5</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-bold text-primary">
                         ₹{Number(product.price).toLocaleString()}
                       </span>
+                      {product.mrp && Number(product.mrp) > Number(product.price) && (
+                        <span className="text-sm text-muted-foreground line-through">
+                          ₹{Number(product.mrp).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    {product.stock_quantity <= product.low_stock_threshold && (
+                      <p className="text-xs text-destructive mt-2">
+                        Only {product.stock_quantity} left in stock!
+                      </p>
                     )}
-                  </div>
-                  {product.stock_quantity <= product.low_stock_threshold && (
-                    <p className="text-xs text-destructive mt-2">
-                      Only {product.stock_quantity} left in stock!
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             </motion.div>
           ))}
         </div>
