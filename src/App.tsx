@@ -13,6 +13,19 @@ import AdminLayout from "@/components/layout/AdminLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Categories from "./pages/Categories";
+import Products from "./pages/Products";
+import NewArrivals from "./pages/NewArrivals";
+import Bestsellers from "./pages/Bestsellers";
+import Offers from "./pages/Offers";
+import Cart from "./pages/Cart";
+import Wishlist from "./pages/Wishlist";
+import Search from "./pages/Search";
+
+// Account Pages
+import Orders from "./pages/account/Orders";
+import Settings from "./pages/account/Settings";
+import Profile from "./pages/account/Profile";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -33,6 +46,17 @@ const App = () => (
             {/* Main Store Routes */}
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/new-arrivals" element={<NewArrivals />} />
+              <Route path="/bestsellers" element={<Bestsellers />} />
+              <Route path="/offers" element={<Offers />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/account" element={<Profile />} />
+              <Route path="/account/orders" element={<Orders />} />
+              <Route path="/account/settings" element={<Settings />} />
             </Route>
 
             {/* Admin Routes */}
