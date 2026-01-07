@@ -600,6 +600,7 @@ export type Database = {
           gst_percent: number
           hsn_code: string | null
           id: string
+          image_url: string | null
           is_active: boolean
           is_featured: boolean
           is_trending: boolean
@@ -626,6 +627,7 @@ export type Database = {
           gst_percent?: number
           hsn_code?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           is_featured?: boolean
           is_trending?: boolean
@@ -652,6 +654,7 @@ export type Database = {
           gst_percent?: number
           hsn_code?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           is_featured?: boolean
           is_trending?: boolean

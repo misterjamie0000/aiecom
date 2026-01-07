@@ -34,7 +34,7 @@ export default function CartItem({ item }: CartItemProps) {
     >
       <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted shrink-0">
         <img
-          src={`https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=200&h=200&fit=crop`}
+          src={(product as any).image_url || `https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=200&h=200&fit=crop`}
           alt={product.name}
           className="w-full h-full object-cover"
         />

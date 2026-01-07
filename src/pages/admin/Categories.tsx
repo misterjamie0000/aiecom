@@ -40,6 +40,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/hooks/useCategories';
+import ImageUpload from '@/components/admin/ImageUpload';
 
 export default function AdminCategories() {
   const [search, setSearch] = useState('');
@@ -153,6 +154,15 @@ export default function AdminCategories() {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
+                <Label>Category Image</Label>
+                <ImageUpload
+                  bucket="categories"
+                  value={formData.image_url}
+                  onChange={(url) => setFormData({ ...formData, image_url: url })}
+                />
+              </div>
+              
+              <div className="space-y-2">
                 <Label htmlFor="name">Name *</Label>
                 <Input
                   id="name"
@@ -179,16 +189,6 @@ export default function AdminCategories() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={2}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="image_url">Image URL</Label>
-                <Input
-                  id="image_url"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  placeholder="https://..."
                 />
               </div>
               

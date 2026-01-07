@@ -109,7 +109,7 @@ export default function ProductDetail() {
         >
           <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
             <img
-              src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&h=800&fit=crop"
+              src={(product as any).image_url || "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&h=800&fit=crop"}
               alt={product.name}
               className="w-full h-full object-cover"
             />

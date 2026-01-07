@@ -50,7 +50,7 @@ export default function TrendingProducts({ products }: TrendingProductsProps) {
               <Link to={`/products/${product.slug}`} className="block">
                 <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-muted">
                   <img
-                    src={`https://images.unsplash.com/photo-${1571781926291 + index * 1000}-c477ebfd024b?w=400&h=500&fit=crop`}
+                    src={(product as any).image_url || `https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=500&fit=crop`}
                     alt={product.name}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
