@@ -154,7 +154,7 @@ export default function Products() {
                       </Badge>
                     )}
                     <img 
-                      src={`https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop`}
+                      src={(product as any).image_url || `https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop`}
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />

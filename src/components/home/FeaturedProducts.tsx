@@ -53,7 +53,7 @@ export default function FeaturedProducts({
               <Link to={`/products/${product.slug}`} className="block">
                 <div className="relative aspect-square rounded-xl overflow-hidden bg-muted mb-3">
                   <img
-                    src={`https://images.unsplash.com/photo-${1596462502278 + index}-27bfdc403348?w=400&h=400&fit=crop`}
+                    src={(product as any).image_url || `https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop`}
                     alt={product.name}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />

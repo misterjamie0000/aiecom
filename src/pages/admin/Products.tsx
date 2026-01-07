@@ -41,6 +41,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
+import ImageUpload from '@/components/admin/ImageUpload';
 
 export default function AdminProducts() {
   const [search, setSearch] = useState('');
@@ -65,6 +66,7 @@ export default function AdminProducts() {
     stock_quantity: '',
     category_id: '',
     sku: '',
+    image_url: '',
     is_active: true,
     is_featured: false,
     is_trending: false,
@@ -82,6 +84,7 @@ export default function AdminProducts() {
       stock_quantity: '',
       category_id: '',
       sku: '',
+      image_url: '',
       is_active: true,
       is_featured: false,
       is_trending: false,
@@ -102,6 +105,7 @@ export default function AdminProducts() {
       stock_quantity: product.stock_quantity.toString(),
       category_id: product.category_id || '',
       sku: product.sku || '',
+      image_url: product.image_url || '',
       is_active: product.is_active,
       is_featured: product.is_featured,
       is_trending: product.is_trending,
@@ -173,6 +177,15 @@ export default function AdminProducts() {
               <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label>Product Image</Label>
+                <ImageUpload
+                  bucket="products"
+                  value={formData.image_url}
+                  onChange={(url) => setFormData({ ...formData, image_url: url })}
+                />
+              </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Name *</Label>
