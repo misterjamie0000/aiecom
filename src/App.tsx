@@ -29,6 +29,21 @@ import Profile from "./pages/account/Profile";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminOrders from "./pages/admin/Orders";
+import AdminProducts from "./pages/admin/Products";
+import AdminCategories from "./pages/admin/Categories";
+import AdminCustomers from "./pages/admin/Customers";
+import AdminReturns from "./pages/admin/Returns";
+import AdminCoupons from "./pages/admin/Coupons";
+import AdminLoyalty from "./pages/admin/Loyalty";
+import AdminReviews from "./pages/admin/Reviews";
+import AdminBanners from "./pages/admin/Banners";
+import AdminPages from "./pages/admin/Pages";
+import AdminReports from "./pages/admin/Reports";
+import AdminPayments from "./pages/admin/Payments";
+import AdminShipping from "./pages/admin/Shipping";
+import AdminNotifications from "./pages/admin/Notifications";
+import AdminSettings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +77,21 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="products" element={<AdminProducts />} />
+              <Route path="categories" element={<AdminCategories />} />
+              <Route path="customers" element={<AdminCustomers />} />
+              <Route path="returns" element={<AdminReturns />} />
+              <Route path="coupons" element={<AdminCoupons />} />
+              <Route path="loyalty" element={<AdminLoyalty />} />
+              <Route path="reviews" element={<AdminReviews />} />
+              <Route path="banners" element={<AdminBanners />} />
+              <Route path="pages" element={<AdminPages />} />
+              <Route path="reports" element={<AdminReports />} />
+              <Route path="payments" element={<AdminPayments />} />
+              <Route path="shipping" element={<AdminShipping />} />
+              <Route path="notifications" element={<AdminNotifications />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
 
             {/* 404 */}
