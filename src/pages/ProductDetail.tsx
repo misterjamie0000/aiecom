@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { 
-  ArrowLeft, 
   Heart, 
   ShoppingCart, 
   Star, 
@@ -20,14 +19,18 @@ import {
   Package
 } from 'lucide-react';
 import { useAddToCart } from '@/hooks/useCart';
+import { useToggleWishlist, useWishlistIds } from '@/hooks/useWishlist';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export default function ProductDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const addToCart = useAddToCart();
+  const { toggle: toggleWishlist, isPending: wishlistPending } = useToggleWishlist();
+  const { data: wishlistIds = [] } = useWishlistIds();
   const [quantity, setQuantity] = useState(1);
 
   const { data: product, isLoading } = useQuery({
@@ -45,6 +48,8 @@ export default function ProductDetail() {
     },
   });
 
+  const isInWishlist = product ? wishlistIds.includes(product.id) : false;
+
   const handleAddToCart = () => {
     if (!user) {
       toast.error('Please login to add items to cart');
@@ -53,6 +58,17 @@ export default function ProductDetail() {
     }
     if (product) {
       addToCart.mutate({ productId: product.id, quantity });
+    }
+  };
+
+  const handleToggleWishlist = () => {
+    if (!user) {
+      toast.error('Please login to add items to wishlist');
+      navigate('/auth');
+      return;
+    }
+    if (product) {
+      toggleWishlist(product.id);
     }
   };
 
@@ -210,8 +226,14 @@ export default function ProductDetail() {
                 <ShoppingCart className="w-5 h-5 mr-2" />
                 {product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
               </Button>
-              <Button size="lg" variant="outline">
-                <Heart className="w-5 h-5" />
+              <Button 
+                size="lg" 
+                variant={isInWishlist ? "default" : "outline"}
+                onClick={handleToggleWishlist}
+                disabled={wishlistPending}
+                className={cn(isInWishlist && "bg-primary")}
+              >
+                <Heart className={cn("w-5 h-5", isInWishlist && "fill-current")} />
               </Button>
             </div>
           </div>
