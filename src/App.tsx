@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 // Layouts
 import MainLayout from "@/components/layout/MainLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
+import AccountLayout from "@/components/account/AccountLayout";
 
 // Pages
 import Index from "./pages/Index";
@@ -28,6 +29,7 @@ import Search from "./pages/Search";
 import Orders from "./pages/account/Orders";
 import Settings from "./pages/account/Settings";
 import Profile from "./pages/account/Profile";
+import Addresses from "./pages/account/Addresses";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -73,9 +75,14 @@ const App = () => (
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/search" element={<Search />} />
-              <Route path="/account" element={<Profile />} />
-              <Route path="/account/orders" element={<Orders />} />
-              <Route path="/account/settings" element={<Settings />} />
+              
+              {/* Account Routes with nested layout */}
+              <Route path="/account" element={<AccountLayout />}>
+                <Route index element={<Profile />} />
+                <Route path="orders" element={<Orders />} />
+                <Route path="addresses" element={<Addresses />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
             </Route>
 
             {/* Admin Routes */}
