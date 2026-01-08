@@ -10,14 +10,18 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAddToCart } from '@/hooks/useCart';
+import { useToggleWishlist, useWishlistIds } from '@/hooks/useWishlist';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 export default function Products() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const addToCart = useAddToCart();
+  const { toggle: toggleWishlist, isPending: wishlistPending } = useToggleWishlist();
+  const { data: wishlistIds = [] } = useWishlistIds();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
@@ -65,6 +69,17 @@ export default function Products() {
       return;
     }
     addToCart.mutate({ productId });
+  };
+
+  const handleToggleWishlist = (productId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast.error('Please login to add items to wishlist');
+      navigate('/auth');
+      return;
+    }
+    toggleWishlist(productId);
   };
 
   return (
@@ -133,77 +148,90 @@ export default function Products() {
         </motion.div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts?.map((product, index) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Link to={`/products/${product.slug}`}>
-                <Card className="overflow-hidden group hover:shadow-lg transition-shadow cursor-pointer">
-                  <div className="relative aspect-square bg-muted">
-                    {product.discount_percent && product.discount_percent > 0 && (
-                      <Badge className="absolute top-2 left-2 bg-destructive text-destructive-foreground">
-                        -{product.discount_percent}%
-                      </Badge>
-                    )}
-                    {product.is_trending && (
-                      <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
-                        Trending
-                      </Badge>
-                    )}
-                    <img 
-                      src={(product as any).image_url || `https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop`}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button 
-                        size="icon" 
-                        variant="secondary" 
-                        className="rounded-full"
-                        onClick={(e) => handleAddToCart(product.id, e)}
-                        disabled={addToCart.isPending}
-                      >
-                        <ShoppingCart className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="secondary" className="rounded-full">
-                        <Heart className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <CardContent className="p-4">
-                    <p className="text-xs text-muted-foreground mb-1">
-                      {(product.categories as any)?.name || 'Uncategorized'}
-                    </p>
-                    <h3 className="font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-center gap-1 mb-2">
-                      <Star className="w-3.5 h-3.5 fill-primary text-primary" />
-                      <span className="text-sm text-muted-foreground">4.5</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-primary">
-                        ₹{Number(product.price).toLocaleString()}
-                      </span>
-                      {product.mrp && Number(product.mrp) > Number(product.price) && (
-                        <span className="text-sm text-muted-foreground line-through">
-                          ₹{Number(product.mrp).toLocaleString()}
-                        </span>
+          {filteredProducts?.map((product, index) => {
+            const isInWishlist = wishlistIds.includes(product.id);
+            
+            return (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Link to={`/products/${product.slug}`}>
+                  <Card className="overflow-hidden group hover:shadow-lg transition-shadow cursor-pointer">
+                    <div className="relative aspect-square bg-muted">
+                      {product.discount_percent && product.discount_percent > 0 && (
+                        <Badge className="absolute top-2 left-2 bg-destructive text-destructive-foreground">
+                          -{product.discount_percent}%
+                        </Badge>
                       )}
+                      {product.is_trending && (
+                        <Badge className="absolute top-2 right-12 bg-primary text-primary-foreground">
+                          Trending
+                        </Badge>
+                      )}
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className={cn(
+                          "absolute top-2 right-2 rounded-full z-10",
+                          isInWishlist && "bg-primary text-primary-foreground hover:bg-primary/90"
+                        )}
+                        onClick={(e) => handleToggleWishlist(product.id, e)}
+                        disabled={wishlistPending}
+                      >
+                        <Heart className={cn("h-4 w-4", isInWishlist && "fill-current")} />
+                      </Button>
+                      <img 
+                        src={(product as any).image_url || `https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop`}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button 
+                          size="icon" 
+                          variant="secondary" 
+                          className="rounded-full"
+                          onClick={(e) => handleAddToCart(product.id, e)}
+                          disabled={addToCart.isPending}
+                        >
+                          <ShoppingCart className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    {product.stock_quantity <= product.low_stock_threshold && (
-                      <p className="text-xs text-destructive mt-2">
-                        Only {product.stock_quantity} left in stock!
+                    <CardContent className="p-4">
+                      <p className="text-xs text-muted-foreground mb-1">
+                        {(product.categories as any)?.name || 'Uncategorized'}
                       </p>
-                    )}
-                  </CardContent>
-                </Card>
-              </Link>
-            </motion.div>
-          ))}
+                      <h3 className="font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-center gap-1 mb-2">
+                        <Star className="w-3.5 h-3.5 fill-primary text-primary" />
+                        <span className="text-sm text-muted-foreground">4.5</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-primary">
+                          ₹{Number(product.price).toLocaleString()}
+                        </span>
+                        {product.mrp && Number(product.mrp) > Number(product.price) && (
+                          <span className="text-sm text-muted-foreground line-through">
+                            ₹{Number(product.mrp).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                      {product.stock_quantity <= product.low_stock_threshold && (
+                        <p className="text-xs text-destructive mt-2">
+                          Only {product.stock_quantity} left in stock!
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
+              </motion.div>
+            );
+          })}
         </div>
       )}
     </div>
