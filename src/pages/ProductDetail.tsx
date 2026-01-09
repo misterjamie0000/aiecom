@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { useAddToCart } from '@/hooks/useCart';
 import { useToggleWishlist, useWishlistIds } from '@/hooks/useWishlist';
+import { useProductRatingStats } from '@/hooks/useReviews';
+import { ProductReviews } from '@/components/product/ProductReviews';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -48,6 +50,7 @@ export default function ProductDetail() {
     },
   });
 
+  const { data: ratingStats } = useProductRatingStats(product?.id || '');
   const isInWishlist = product ? wishlistIds.includes(product.id) : false;
 
   const handleAddToCart = () => {
@@ -157,10 +160,15 @@ export default function ProductDetail() {
             <div className="flex items-center gap-2 mb-4">
               <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className={`w-4 h-4 ${i < 4 ? 'fill-primary text-primary' : 'text-muted'}`} />
+                  <Star key={i} className={cn(
+                    "w-4 h-4",
+                    i < Math.round(ratingStats?.average || 0) ? 'fill-primary text-primary' : 'text-muted'
+                  )} />
                 ))}
               </div>
-              <span className="text-sm text-muted-foreground">(128 reviews)</span>
+              <span className="text-sm text-muted-foreground">
+                ({ratingStats?.count || 0} reviews)
+              </span>
             </div>
           </div>
 
@@ -260,6 +268,9 @@ export default function ProductDetail() {
           </div>
         </motion.div>
       </div>
+
+      {/* Reviews Section */}
+      {product && <ProductReviews productId={product.id} />}
     </div>
   );
 }
