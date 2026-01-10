@@ -40,7 +40,6 @@ export default function AdminReturns() {
   
   const filteredRequests = requests?.filter(r => 
     r.orders?.order_number?.toLowerCase().includes(search.toLowerCase()) ||
-    r.profiles?.email?.toLowerCase().includes(search.toLowerCase()) ||
     r.reason?.toLowerCase().includes(search.toLowerCase())
   );
   
@@ -172,8 +171,7 @@ export default function AdminReturns() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{request.profiles?.full_name || 'Unknown'}</p>
-                        <p className="text-sm text-muted-foreground">{request.profiles?.email}</p>
+                        <p className="font-medium text-muted-foreground">{request.user_id.slice(0, 8)}...</p>
                       </div>
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate">

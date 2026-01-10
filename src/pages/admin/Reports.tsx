@@ -35,7 +35,7 @@ export default function AdminReports() {
   const totalRevenue = filteredOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
   const totalOrders = filteredOrders.length;
   const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-  const completedOrders = filteredOrders.filter(o => o.status === 'delivered').length;
+  const completedOrders = filteredOrders.filter(o => o.status === 'delivered' || o.status === 'confirmed').length;
   const conversionRate = totalOrders > 0 ? (completedOrders / totalOrders * 100) : 0;
   
   // Revenue by day chart data

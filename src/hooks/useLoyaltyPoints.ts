@@ -12,7 +12,7 @@ export function useLoyaltyPoints() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('loyalty_points')
-        .select('*, profiles(full_name, email)')
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;

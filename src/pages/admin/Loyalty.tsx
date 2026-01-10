@@ -30,8 +30,6 @@ export default function AdminLoyalty() {
   const addPoints = useAddLoyaltyPoints();
   
   const filteredPoints = points?.filter(p => 
-    p.profiles?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    p.profiles?.email?.toLowerCase().includes(search.toLowerCase()) ||
     p.description?.toLowerCase().includes(search.toLowerCase())
   );
   
@@ -147,8 +145,7 @@ export default function AdminLoyalty() {
                   <TableRow key={point.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{point.profiles?.full_name || 'Unknown'}</p>
-                        <p className="text-sm text-muted-foreground">{point.profiles?.email}</p>
+                        <p className="font-medium text-muted-foreground">{point.user_id.slice(0, 8)}...</p>
                       </div>
                     </TableCell>
                     <TableCell>

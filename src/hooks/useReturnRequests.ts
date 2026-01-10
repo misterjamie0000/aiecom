@@ -12,7 +12,7 @@ export function useReturnRequests() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('return_requests')
-        .select('*, orders(order_number), profiles(full_name, email)')
+        .select('*, orders(order_number)')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
