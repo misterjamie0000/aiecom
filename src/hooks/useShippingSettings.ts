@@ -39,7 +39,7 @@ export function useShippingSettings() {
         .maybeSingle();
       
       if (error) throw error;
-      return (data?.value as ShippingSettings) || DEFAULT_SETTINGS;
+      return (data?.value as unknown as ShippingSettings) || DEFAULT_SETTINGS;
     },
   });
 }

@@ -41,7 +41,7 @@ export function usePaymentSettings() {
         .maybeSingle();
       
       if (error) throw error;
-      return (data?.value as PaymentSettings) || DEFAULT_SETTINGS;
+      return (data?.value as unknown as PaymentSettings) || DEFAULT_SETTINGS;
     },
   });
 }

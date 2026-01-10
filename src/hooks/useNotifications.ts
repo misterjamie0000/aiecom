@@ -43,7 +43,7 @@ export function useNotificationSettings() {
         .maybeSingle();
       
       if (error) throw error;
-      return (data?.value as NotificationSettings) || DEFAULT_SETTINGS;
+      return (data?.value as unknown as NotificationSettings) || DEFAULT_SETTINGS;
     },
   });
 }
