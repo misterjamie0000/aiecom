@@ -56,10 +56,12 @@ export default function AdminReports() {
   // Orders by status
   const ordersByStatus = [
     { name: 'Pending', value: filteredOrders.filter(o => o.status === 'pending').length },
-    { name: 'Processing', value: filteredOrders.filter(o => o.status === 'processing').length },
+    { name: 'Confirmed', value: filteredOrders.filter(o => o.status === 'confirmed').length },
     { name: 'Shipped', value: filteredOrders.filter(o => o.status === 'shipped').length },
     { name: 'Delivered', value: filteredOrders.filter(o => o.status === 'delivered').length },
     { name: 'Cancelled', value: filteredOrders.filter(o => o.status === 'cancelled').length },
+    { name: 'Refunded', value: filteredOrders.filter(o => o.status === 'refunded').length },
+    { name: 'Returned', value: filteredOrders.filter(o => o.status === 'returned').length },
   ].filter(item => item.value > 0);
   
   // Top products by sales
