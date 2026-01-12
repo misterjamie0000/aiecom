@@ -50,11 +50,16 @@ export default function Index() {
   if (bannersLoading) {
     return (
       <div className="min-h-screen">
-        <Skeleton className="h-[400px] lg:h-[500px] w-full" />
-        <div className="container mx-auto px-4 py-8">
-          <Skeleton className="h-8 w-48 mb-4" />
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {[...Array(5)].map((_, i) => (
+        <div className="relative min-h-[500px] lg:min-h-[600px] bg-gradient-to-br from-primary/10 via-background to-accent/10 animate-pulse">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-16">
+          <Skeleton className="h-10 w-64 mb-4" />
+          <Skeleton className="h-6 w-48 mb-8" />
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+            {[...Array(6)].map((_, i) => (
               <Skeleton key={i} className="aspect-square rounded-2xl" />
             ))}
           </div>
