@@ -27,7 +27,8 @@ import {
 import OrderTrackingTimeline from '@/components/orders/OrderTrackingTimeline';
 import OrderCancelDialog from '@/components/orders/OrderCancelDialog';
 import InvoiceDownload from '@/components/orders/InvoiceDownload';
-import ReturnRequestDialog from '@/components/orders/ReturnRequestDialog';
+import ReturnReplaceRequestDialog from '@/components/orders/ReturnReplaceRequestDialog';
+import RequestStatusCard from '@/components/orders/RequestStatusCard';
 import { useCancelOrder } from '@/hooks/useOrders';
 import { useUserReturnRequests, useCreateReturnRequest } from '@/hooks/useReturnRequests';
 
@@ -186,20 +187,21 @@ function OrderCard({ order }: { order: any }) {
 
   const canCancel = ['pending', 'confirmed'].includes(order.status);
   const canReturn = order.status === 'delivered';
-  const hasExistingReturnRequest = userReturnRequests?.some(r => r.order_id === order.id);
+  const existingRequest = userReturnRequests?.find(r => r.order_id === order.id);
 
   const handleCancel = async (reason: string) => {
     if (!user?.id) return;
     await cancelOrder.mutateAsync({ id: order.id, reason, userId: user.id });
   };
 
-  const handleReturnRequest = async (reason: string, description: string) => {
+  const handleReturnReplaceRequest = async (requestType: 'return' | 'replace', reason: string, description: string) => {
     if (!user?.id) return;
     await createReturnRequest.mutateAsync({
       order_id: order.id,
       user_id: user.id,
       reason,
       description: description || null,
+      request_type: requestType,
     });
   };
 
@@ -361,6 +363,14 @@ function OrderCard({ order }: { order: any }) {
                     </div>
                   )}
 
+                  {/* Return/Replace Request Status */}
+                  {existingRequest && (
+                    <div>
+                      <h4 className="font-semibold mb-2">Request Status</h4>
+                      <RequestStatusCard request={existingRequest as any} />
+                    </div>
+                  )}
+
                   {/* Action Buttons */}
                   <div className="pt-4 border-t flex flex-wrap gap-3">
                     {/* Invoice Download - always available */}
@@ -387,13 +397,13 @@ function OrderCard({ order }: { order: any }) {
                       />
                     )}
 
-                    {/* Return Request - for delivered orders */}
+                    {/* Return/Replace Request - for delivered orders */}
                     {canReturn && (
-                      <ReturnRequestDialog
+                      <ReturnReplaceRequestDialog
                         orderNumber={order.order_number}
-                        onSubmit={handleReturnRequest}
+                        onSubmit={handleReturnReplaceRequest}
                         disabled={createReturnRequest.isPending}
-                        hasExistingRequest={hasExistingReturnRequest}
+                        existingRequest={existingRequest ? { request_type: (existingRequest as any).request_type || 'return', status: existingRequest.status } : null}
                       />
                     )}
 
