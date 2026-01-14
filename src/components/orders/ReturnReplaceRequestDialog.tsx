@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2, RotateCcw } from 'lucide-react';
+import { Loader2, RotateCcw, RefreshCw } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,8 +15,9 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-const RETURN_REASONS = [
+const REQUEST_REASONS = [
   { value: 'defective', label: 'Product is defective or damaged' },
   { value: 'wrong_item', label: 'Received wrong item' },
   { value: 'not_as_described', label: 'Product not as described' },
@@ -25,32 +26,36 @@ const RETURN_REASONS = [
   { value: 'other', label: 'Other reason' },
 ];
 
-interface ReturnRequestDialogProps {
+interface ReturnReplaceRequestDialogProps {
   orderNumber: string;
-  onSubmit: (reason: string, description: string) => Promise<void>;
+  onSubmit: (requestType: 'return' | 'replace', reason: string, description: string) => Promise<void>;
   disabled?: boolean;
-  hasExistingRequest?: boolean;
+  existingRequest?: {
+    request_type: string;
+    status: string;
+  } | null;
 }
 
-export default function ReturnRequestDialog({ 
+export default function ReturnReplaceRequestDialog({ 
   orderNumber, 
   onSubmit,
   disabled = false,
-  hasExistingRequest = false
-}: ReturnRequestDialogProps) {
+  existingRequest = null
+}: ReturnReplaceRequestDialogProps) {
   const [open, setOpen] = useState(false);
+  const [requestType, setRequestType] = useState<'return' | 'replace'>('return');
   const [selectedReason, setSelectedReason] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
-    const reason = RETURN_REASONS.find(r => r.value === selectedReason)?.label || selectedReason;
+    const reason = REQUEST_REASONS.find(r => r.value === selectedReason)?.label || selectedReason;
     
     if (!reason.trim()) return;
 
     setIsSubmitting(true);
     try {
-      await onSubmit(reason, description);
+      await onSubmit(requestType, reason, description);
       setOpen(false);
       setSelectedReason('');
       setDescription('');
@@ -59,7 +64,8 @@ export default function ReturnRequestDialog({
     }
   };
 
-  if (hasExistingRequest) {
+  if (existingRequest) {
+    const isReplace = existingRequest.request_type === 'replace';
     return (
       <Button 
         variant="outline" 
@@ -67,8 +73,12 @@ export default function ReturnRequestDialog({
         className="rounded-full"
         disabled
       >
-        <RotateCcw className="w-4 h-4 mr-2" />
-        Return Requested
+        {isReplace ? (
+          <RefreshCw className="w-4 h-4 mr-2" />
+        ) : (
+          <RotateCcw className="w-4 h-4 mr-2" />
+        )}
+        {isReplace ? 'Replace' : 'Return'} Requested
       </Button>
     );
   }
@@ -83,7 +93,7 @@ export default function ReturnRequestDialog({
           disabled={disabled}
         >
           <RotateCcw className="w-4 h-4 mr-2" />
-          Request Return
+          Return / Replace
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-md">
@@ -93,7 +103,7 @@ export default function ReturnRequestDialog({
               <RotateCcw className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <AlertDialogTitle>Request Return</AlertDialogTitle>
+              <AlertDialogTitle>Return or Replace</AlertDialogTitle>
               <AlertDialogDescription className="text-left">
                 Order #{orderNumber}
               </AlertDialogDescription>
@@ -102,24 +112,47 @@ export default function ReturnRequestDialog({
         </AlertDialogHeader>
         
         <div className="space-y-4 py-4">
+          <Tabs value={requestType} onValueChange={(v) => setRequestType(v as 'return' | 'replace')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="return" className="gap-2">
+                <RotateCcw className="w-4 h-4" />
+                Return
+              </TabsTrigger>
+              <TabsTrigger value="replace" className="gap-2">
+                <RefreshCw className="w-4 h-4" />
+                Replace
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="return" className="mt-3">
+              <p className="text-sm text-muted-foreground">
+                Get a refund for your order. The amount will be credited to your original payment method.
+              </p>
+            </TabsContent>
+            <TabsContent value="replace" className="mt-3">
+              <p className="text-sm text-muted-foreground">
+                Receive a replacement for your order. We'll ship a new item once we receive the original.
+              </p>
+            </TabsContent>
+          </Tabs>
+
           <div>
             <Label className="text-sm font-medium mb-3 block">
-              Please select a reason for return
+              Please select a reason
             </Label>
             <RadioGroup
               value={selectedReason}
               onValueChange={setSelectedReason}
               className="space-y-2"
             >
-              {RETURN_REASONS.map((reason) => (
+              {REQUEST_REASONS.map((reason) => (
                 <div
                   key={reason.value}
                   className="flex items-center space-x-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors cursor-pointer"
                   onClick={() => setSelectedReason(reason.value)}
                 >
-                  <RadioGroupItem value={reason.value} id={`return-${reason.value}`} />
+                  <RadioGroupItem value={reason.value} id={`request-${reason.value}`} />
                   <Label 
-                    htmlFor={`return-${reason.value}`} 
+                    htmlFor={`request-${reason.value}`} 
                     className="flex-1 cursor-pointer font-normal"
                   >
                     {reason.label}
@@ -130,9 +163,9 @@ export default function ReturnRequestDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="return-description">Additional Details (Optional)</Label>
+            <Label htmlFor="request-description">Additional Details (Optional)</Label>
             <Textarea
-              id="return-description"
+              id="request-description"
               placeholder="Describe the issue in detail..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -160,7 +193,7 @@ export default function ReturnRequestDialog({
                 Submitting...
               </>
             ) : (
-              'Submit Request'
+              `Submit ${requestType === 'replace' ? 'Replace' : 'Return'} Request`
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

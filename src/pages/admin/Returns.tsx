@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RotateCcw, Search, Eye, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { RotateCcw, RefreshCw, Search, Eye, CheckCircle, XCircle, Clock, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useReturnRequests, useUpdateReturnRequest } from '@/hooks/useReturnRequests';
 import { format } from 'date-fns';
 
@@ -27,6 +28,11 @@ const refundStatusColors: Record<string, string> = {
   failed: 'bg-red-100 text-red-800',
 };
 
+const requestTypeColors: Record<string, string> = {
+  return: 'bg-orange-100 text-orange-800',
+  replace: 'bg-purple-100 text-purple-800',
+};
+
 export default function AdminReturns() {
   const [search, setSearch] = useState('');
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
@@ -34,14 +40,17 @@ export default function AdminReturns() {
   const [newStatus, setNewStatus] = useState('');
   const [refundAmount, setRefundAmount] = useState<number | ''>('');
   const [refundStatus, setRefundStatus] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'return' | 'replace'>('all');
   
   const { data: requests, isLoading } = useReturnRequests();
   const updateRequest = useUpdateReturnRequest();
   
-  const filteredRequests = requests?.filter(r => 
-    r.orders?.order_number?.toLowerCase().includes(search.toLowerCase()) ||
-    r.reason?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredRequests = requests?.filter(r => {
+    const matchesSearch = r.orders?.order_number?.toLowerCase().includes(search.toLowerCase()) ||
+      r.reason?.toLowerCase().includes(search.toLowerCase());
+    const matchesType = filterType === 'all' || (r as any).request_type === filterType;
+    return matchesSearch && matchesType;
+  });
   
   const handleViewRequest = (request: any) => {
     setSelectedRequest(request);
@@ -66,6 +75,8 @@ export default function AdminReturns() {
   
   const stats = {
     total: requests?.length || 0,
+    returns: requests?.filter(r => (r as any).request_type === 'return' || !(r as any).request_type).length || 0,
+    replaces: requests?.filter(r => (r as any).request_type === 'replace').length || 0,
     pending: requests?.filter(r => r.status === 'pending').length || 0,
     approved: requests?.filter(r => r.status === 'approved').length || 0,
     processing: requests?.filter(r => r.status === 'processing').length || 0,
@@ -74,18 +85,36 @@ export default function AdminReturns() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Returns</h1>
-        <p className="text-muted-foreground">Manage return requests and refunds</p>
+        <h1 className="text-3xl font-bold">Returns & Replacements</h1>
+        <p className="text-muted-foreground">Manage return and replacement requests</p>
       </div>
       
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
-            <RotateCcw className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Returns</CardTitle>
+            <RotateCcw className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.returns}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Replacements</CardTitle>
+            <RefreshCw className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.replaces}</div>
           </CardContent>
         </Card>
         <Card>
@@ -119,16 +148,27 @@ export default function AdminReturns() {
       
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
-                placeholder="Search by order, email, or reason..." 
+                placeholder="Search by order or reason..." 
                 className="pl-9"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
+            <Tabs value={filterType} onValueChange={(v) => setFilterType(v as any)}>
+              <TabsList>
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="return" className="gap-1">
+                  <RotateCcw className="w-3 h-3" /> Returns
+                </TabsTrigger>
+                <TabsTrigger value="replace" className="gap-1">
+                  <RefreshCw className="w-3 h-3" /> Replacements
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
         </CardHeader>
         <CardContent>
@@ -136,6 +176,7 @@ export default function AdminReturns() {
             <TableHeader>
               <TableRow>
                 <TableHead>Order</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Reason</TableHead>
                 <TableHead>Status</TableHead>
@@ -149,6 +190,7 @@ export default function AdminReturns() {
                 [...Array(5)].map((_, i) => (
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
@@ -159,51 +201,66 @@ export default function AdminReturns() {
                 ))
               ) : filteredRequests?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    No return requests found
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    No requests found
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredRequests?.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell className="font-medium">
-                      {request.orders?.order_number || 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-muted-foreground">{request.user_id.slice(0, 8)}...</p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      {request.reason}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={statusColors[request.status] || ''}>
-                        {request.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {request.refund_amount ? (
-                        <div>
-                          <p>₹{request.refund_amount}</p>
-                          {request.refund_status && (
-                            <Badge variant="outline" className={refundStatusColors[request.refund_status] || ''}>
-                              {request.refund_status}
-                            </Badge>
+                filteredRequests?.map((request) => {
+                  const requestType = (request as any).request_type || 'return';
+                  return (
+                    <TableRow key={request.id}>
+                      <TableCell className="font-medium">
+                        {request.orders?.order_number || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={requestTypeColors[requestType] || requestTypeColors.return}>
+                          {requestType === 'replace' ? (
+                            <RefreshCw className="w-3 h-3 mr-1" />
+                          ) : (
+                            <RotateCcw className="w-3 h-3 mr-1" />
                           )}
+                          {requestType.charAt(0).toUpperCase() + requestType.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-muted-foreground">{request.user_id.slice(0, 8)}...</p>
                         </div>
-                      ) : '-'}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {format(new Date(request.created_at), 'MMM dd, yyyy')}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleViewRequest(request)}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate">
+                        {request.reason}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={statusColors[request.status] || ''}>
+                          {request.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {request.refund_amount ? (
+                          <div>
+                            <p>₹{request.refund_amount}</p>
+                            {request.refund_status && (
+                              <Badge variant="outline" className={refundStatusColors[request.refund_status] || ''}>
+                                {request.refund_status}
+                              </Badge>
+                            )}
+                          </div>
+                        ) : requestType === 'replace' ? (
+                          <span className="text-muted-foreground text-sm">N/A</span>
+                        ) : '-'}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {format(new Date(request.created_at), 'MMM dd, yyyy')}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleViewRequest(request)}>
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
@@ -213,7 +270,19 @@ export default function AdminReturns() {
       <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Return Request Details</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {(selectedRequest as any)?.request_type === 'replace' ? (
+                <>
+                  <RefreshCw className="w-5 h-5 text-purple-600" />
+                  Replacement Request Details
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="w-5 h-5 text-orange-600" />
+                  Return Request Details
+                </>
+              )}
+            </DialogTitle>
           </DialogHeader>
           {selectedRequest && (
             <div className="space-y-4">
@@ -223,9 +292,15 @@ export default function AdminReturns() {
                   <p className="font-medium">{selectedRequest.orders?.order_number}</p>
                 </div>
                 <div>
+                  <p className="text-muted-foreground">Request Type</p>
+                  <Badge className={requestTypeColors[(selectedRequest as any).request_type || 'return']}>
+                    {((selectedRequest as any).request_type || 'return') === 'replace' ? 'Replacement' : 'Return'}
+                  </Badge>
+                </div>
+                <div>
                   <p className="text-muted-foreground">Customer</p>
-                  <p className="font-medium">{selectedRequest.profiles?.full_name}</p>
-                  <p className="text-muted-foreground">{selectedRequest.profiles?.email}</p>
+                  <p className="font-medium">{selectedRequest.profiles?.full_name || 'N/A'}</p>
+                  <p className="text-muted-foreground">{selectedRequest.profiles?.email || ''}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Submitted</p>
@@ -261,37 +336,39 @@ export default function AdminReturns() {
                 </Select>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Refund Amount (₹)</Label>
-                  <Input
-                    type="number"
-                    value={refundAmount}
-                    onChange={(e) => setRefundAmount(e.target.value ? Number(e.target.value) : '')}
-                    placeholder="0.00"
-                  />
+              {(selectedRequest as any).request_type !== 'replace' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Refund Amount (₹)</Label>
+                    <Input
+                      type="number"
+                      value={refundAmount}
+                      onChange={(e) => setRefundAmount(e.target.value ? Number(e.target.value) : '')}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Refund Status</Label>
+                    <Select value={refundStatus} onValueChange={setRefundStatus}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="processed">Processed</SelectItem>
+                        <SelectItem value="failed">Failed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Refund Status</Label>
-                  <Select value={refundStatus} onValueChange={setRefundStatus}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="processed">Processed</SelectItem>
-                      <SelectItem value="failed">Failed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              )}
               
               <div className="space-y-2">
                 <Label>Admin Notes</Label>
                 <Textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Internal notes about this return..."
+                  placeholder={`Internal notes about this ${(selectedRequest as any).request_type === 'replace' ? 'replacement' : 'return'}...`}
                   rows={3}
                 />
               </div>

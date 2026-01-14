@@ -751,6 +751,7 @@ export type Database = {
           reason: string
           refund_amount: number | null
           refund_status: string | null
+          request_type: string
           status: string
           updated_at: string
           user_id: string
@@ -764,6 +765,7 @@ export type Database = {
           reason: string
           refund_amount?: number | null
           refund_status?: string | null
+          request_type?: string
           status?: string
           updated_at?: string
           user_id: string
@@ -777,6 +779,7 @@ export type Database = {
           reason?: string
           refund_amount?: number | null
           refund_status?: string | null
+          request_type?: string
           status?: string
           updated_at?: string
           user_id?: string

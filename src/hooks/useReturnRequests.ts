@@ -44,7 +44,7 @@ export function useCreateReturnRequest() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (data: ReturnRequestInsert) => {
+    mutationFn: async (data: ReturnRequestInsert & { request_type?: 'return' | 'replace' }) => {
       const { data: result, error } = await supabase
         .from('return_requests')
         .insert(data)
@@ -57,10 +57,11 @@ export function useCreateReturnRequest() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-return-requests'] });
       queryClient.invalidateQueries({ queryKey: ['user-return-requests', variables.user_id] });
-      toast.success('Return request submitted successfully');
+      const requestType = variables.request_type === 'replace' ? 'Replace' : 'Return';
+      toast.success(`${requestType} request submitted successfully`);
     },
     onError: (error) => {
-      toast.error('Failed to submit return request: ' + error.message);
+      toast.error('Failed to submit request: ' + error.message);
     },
   });
 }
