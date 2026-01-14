@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import OrderTrackingTimeline from '@/components/orders/OrderTrackingTimeline';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
@@ -221,14 +222,23 @@ function OrderCard({ order }: { order: any }) {
                 </DialogHeader>
                 
                 <div className="space-y-6">
-                  {/* Order Status */}
-                  <div className="flex items-center gap-4">
-                    <Badge className={statusColors[order.status] || ''}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                    </Badge>
-                    <Badge variant="outline">
-                      Payment: {order.payment_status}
-                    </Badge>
+                  {/* Order Tracking Timeline */}
+                  <div>
+                    <h4 className="font-semibold mb-2">Order Status</h4>
+                    <div className="bg-muted/30 rounded-xl p-4">
+                      <OrderTrackingTimeline
+                        status={order.status}
+                        createdAt={order.created_at}
+                        shippedAt={order.shipped_at}
+                        deliveredAt={order.delivered_at}
+                        cancelledAt={order.cancelled_at}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 mt-3">
+                      <Badge variant="outline">
+                        Payment: {order.payment_status}
+                      </Badge>
+                    </div>
                   </div>
 
                   {/* Order Items */}
