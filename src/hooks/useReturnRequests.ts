@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Tables, TablesUpdate } from '@/integrations/supabase/types';
+import { Tables, TablesUpdate, TablesInsert } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 
 type ReturnRequest = Tables<'return_requests'>;
 type ReturnRequestUpdate = TablesUpdate<'return_requests'>;
+type ReturnRequestInsert = TablesInsert<'return_requests'>;
 
 export function useReturnRequests() {
   return useQuery({
@@ -17,6 +18,49 @@ export function useReturnRequests() {
       
       if (error) throw error;
       return data;
+    },
+  });
+}
+
+export function useUserReturnRequests(userId?: string) {
+  return useQuery({
+    queryKey: ['user-return-requests', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from('return_requests')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+  });
+}
+
+export function useCreateReturnRequest() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (data: ReturnRequestInsert) => {
+      const { data: result, error } = await supabase
+        .from('return_requests')
+        .insert(data)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-return-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['user-return-requests', variables.user_id] });
+      toast.success('Return request submitted successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to submit return request: ' + error.message);
     },
   });
 }

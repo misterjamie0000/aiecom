@@ -26,7 +26,10 @@ import {
 } from '@/components/ui/table';
 import OrderTrackingTimeline from '@/components/orders/OrderTrackingTimeline';
 import OrderCancelDialog from '@/components/orders/OrderCancelDialog';
+import InvoiceDownload from '@/components/orders/InvoiceDownload';
+import ReturnRequestDialog from '@/components/orders/ReturnRequestDialog';
 import { useCancelOrder } from '@/hooks/useOrders';
+import { useUserReturnRequests, useCreateReturnRequest } from '@/hooks/useReturnRequests';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
@@ -155,6 +158,8 @@ export default function Orders() {
 function OrderCard({ order }: { order: any }) {
   const { user } = useAuth();
   const cancelOrder = useCancelOrder();
+  const createReturnRequest = useCreateReturnRequest();
+  const { data: userReturnRequests } = useUserReturnRequests(user?.id);
 
   const { data: orderItems } = useQuery({
     queryKey: ['order-items', order.id],
@@ -172,16 +177,30 @@ function OrderCard({ order }: { order: any }) {
   const shippingAddress = order.shipping_address as {
     full_name?: string;
     address_line1?: string;
+    address_line2?: string;
     city?: string;
     state?: string;
     pincode?: string;
+    phone?: string;
   };
 
   const canCancel = ['pending', 'confirmed'].includes(order.status);
+  const canReturn = order.status === 'delivered';
+  const hasExistingReturnRequest = userReturnRequests?.some(r => r.order_id === order.id);
 
   const handleCancel = async (reason: string) => {
     if (!user?.id) return;
     await cancelOrder.mutateAsync({ id: order.id, reason, userId: user.id });
+  };
+
+  const handleReturnRequest = async (reason: string, description: string) => {
+    if (!user?.id) return;
+    await createReturnRequest.mutateAsync({
+      order_id: order.id,
+      user_id: user.id,
+      reason,
+      description: description || null,
+    });
   };
 
   return (
@@ -342,16 +361,51 @@ function OrderCard({ order }: { order: any }) {
                     </div>
                   )}
 
-                  {/* Cancel Order Button */}
-                  {canCancel && (
-                    <div className="pt-2 border-t">
+                  {/* Action Buttons */}
+                  <div className="pt-4 border-t flex flex-wrap gap-3">
+                    {/* Invoice Download - always available */}
+                    {orderItems && orderItems.length > 0 && (
+                      <InvoiceDownload
+                        order={{
+                          id: order.id,
+                          order_number: order.order_number,
+                          created_at: order.created_at,
+                          subtotal: order.subtotal,
+                          discount_amount: order.discount_amount,
+                          shipping_amount: order.shipping_amount,
+                          tax_amount: order.tax_amount,
+                          cgst_amount: order.cgst_amount,
+                          sgst_amount: order.sgst_amount,
+                          igst_amount: order.igst_amount,
+                          total_amount: order.total_amount,
+                          payment_method: order.payment_method,
+                          payment_status: order.payment_status,
+                          shipping_address: shippingAddress,
+                          billing_address: order.billing_address,
+                        }}
+                        orderItems={orderItems}
+                      />
+                    )}
+
+                    {/* Return Request - for delivered orders */}
+                    {canReturn && (
+                      <ReturnRequestDialog
+                        orderNumber={order.order_number}
+                        onSubmit={handleReturnRequest}
+                        disabled={createReturnRequest.isPending}
+                        hasExistingRequest={hasExistingReturnRequest}
+                      />
+                    )}
+
+                    {/* Cancel Order - for pending/confirmed orders */}
+                    {canCancel && (
                       <OrderCancelDialog
                         orderNumber={order.order_number}
                         onCancel={handleCancel}
                         disabled={cancelOrder.isPending}
                       />
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>
