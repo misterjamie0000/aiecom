@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/account', label: 'Profile', icon: User, end: true },
-  { to: '/account/orders', label: 'My Orders', icon: Package },
   { to: '/account/addresses', label: 'Addresses', icon: MapPin },
   { to: '/account/settings', label: 'Settings', icon: Settings },
 ];
