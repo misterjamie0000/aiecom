@@ -27,7 +27,7 @@ export default function MobileNav() {
   }, {
     icon: Package,
     label: 'Orders',
-    href: user ? '/account/orders' : '/auth',
+    href: user ? '/orders' : '/auth',
     gradient: 'from-emerald-500 to-teal-500'
   }, {
     icon: User,
