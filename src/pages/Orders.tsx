@@ -25,6 +25,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import OrderTrackingTimeline from '@/components/orders/OrderTrackingTimeline';
+import OrderCancelDialog from '@/components/orders/OrderCancelDialog';
+import { useCancelOrder } from '@/hooks/useOrders';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
@@ -151,6 +153,9 @@ export default function Orders() {
 }
 
 function OrderCard({ order }: { order: any }) {
+  const { user } = useAuth();
+  const cancelOrder = useCancelOrder();
+
   const { data: orderItems } = useQuery({
     queryKey: ['order-items', order.id],
     queryFn: async () => {
@@ -170,6 +175,13 @@ function OrderCard({ order }: { order: any }) {
     city?: string;
     state?: string;
     pincode?: string;
+  };
+
+  const canCancel = ['pending', 'confirmed'].includes(order.status);
+
+  const handleCancel = async (reason: string) => {
+    if (!user?.id) return;
+    await cancelOrder.mutateAsync({ id: order.id, reason, userId: user.id });
   };
 
   return (
@@ -319,6 +331,25 @@ function OrderCard({ order }: { order: any }) {
                           </a>
                         )}
                       </p>
+                    </div>
+                  )}
+
+                  {/* Cancel Reason (if cancelled) */}
+                  {order.status === 'cancelled' && order.cancel_reason && (
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                      <h4 className="font-semibold text-destructive mb-1">Cancellation Reason</h4>
+                      <p className="text-sm text-muted-foreground">{order.cancel_reason}</p>
+                    </div>
+                  )}
+
+                  {/* Cancel Order Button */}
+                  {canCancel && (
+                    <div className="pt-2 border-t">
+                      <OrderCancelDialog
+                        orderNumber={order.order_number}
+                        onCancel={handleCancel}
+                        disabled={cancelOrder.isPending}
+                      />
                     </div>
                   )}
                 </div>

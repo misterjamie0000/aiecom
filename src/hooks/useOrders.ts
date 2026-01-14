@@ -45,3 +45,34 @@ export function useUpdateOrder() {
     },
   });
 }
+
+export function useCancelOrder() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, reason, userId }: { id: string; reason: string; userId: string }) => {
+      const { data, error } = await supabase
+        .from('orders')
+        .update({
+          status: 'cancelled',
+          cancel_reason: reason,
+          cancelled_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .eq('user_id', userId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['user-orders', variables.userId] });
+      toast.success('Order cancelled successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to cancel order: ' + error.message);
+    },
+  });
+}
