@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RotateCcw, RefreshCw, Search, Eye, CheckCircle, XCircle, Clock, Package } from 'lucide-react';
+import { RotateCcw, RefreshCw, Search, Eye, CheckCircle, XCircle, Clock, Package, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useReturnRequests, useUpdateReturnRequest } from '@/hooks/useReturnRequests';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 const statusColors: Record<string, string> = {
@@ -41,6 +44,8 @@ export default function AdminReturns() {
   const [refundAmount, setRefundAmount] = useState<number | ''>('');
   const [refundStatus, setRefundStatus] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'return' | 'replace'>('all');
+  const [sendEmailNotification, setSendEmailNotification] = useState(true);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   
   const { data: requests, isLoading } = useReturnRequests();
   const updateRequest = useUpdateReturnRequest();
@@ -62,6 +67,9 @@ export default function AdminReturns() {
   
   const handleUpdate = async () => {
     if (selectedRequest) {
+      const oldStatus = selectedRequest.status;
+      const statusChanged = oldStatus !== newStatus;
+      
       await updateRequest.mutateAsync({
         id: selectedRequest.id,
         status: newStatus,
@@ -69,6 +77,47 @@ export default function AdminReturns() {
         refund_amount: refundAmount || null,
         refund_status: refundStatus || null,
       });
+
+      // Send email notification if status changed and email is enabled
+      if (statusChanged && sendEmailNotification) {
+        const customerEmail = selectedRequest.profiles?.email;
+        const customerName = selectedRequest.profiles?.full_name;
+        const orderNumber = selectedRequest.orders?.order_number;
+        
+        if (customerEmail) {
+          setIsSendingEmail(true);
+          try {
+            const { error } = await supabase.functions.invoke('send-request-status-email', {
+              body: {
+                email: customerEmail,
+                customerName: customerName || 'Valued Customer',
+                orderNumber: orderNumber || 'N/A',
+                requestType: (selectedRequest as any).request_type || 'return',
+                oldStatus,
+                newStatus,
+                adminNotes: adminNotes || undefined,
+                refundAmount: refundAmount || undefined,
+                refundStatus: refundStatus || undefined,
+              },
+            });
+            
+            if (error) {
+              console.error('Failed to send email:', error);
+              toast.error('Request updated but email notification failed');
+            } else {
+              toast.success('Email notification sent to customer');
+            }
+          } catch (err) {
+            console.error('Error sending email:', err);
+            toast.error('Request updated but email notification failed');
+          } finally {
+            setIsSendingEmail(false);
+          }
+        } else {
+          toast.warning('Request updated but no customer email found');
+        }
+      }
+      
       setSelectedRequest(null);
     }
   };
@@ -372,13 +421,28 @@ export default function AdminReturns() {
                   rows={3}
                 />
               </div>
+
+              {/* Email Notification Option */}
+              {selectedRequest?.status !== newStatus && selectedRequest?.profiles?.email && (
+                <div className="flex items-center space-x-2 p-3 bg-muted/50 rounded-lg">
+                  <Checkbox
+                    id="send-email"
+                    checked={sendEmailNotification}
+                    onCheckedChange={(checked) => setSendEmailNotification(checked as boolean)}
+                  />
+                  <Label htmlFor="send-email" className="flex items-center gap-2 cursor-pointer">
+                    <Mail className="w-4 h-4" />
+                    Send email notification to customer
+                  </Label>
+                </div>
+              )}
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setSelectedRequest(null)}>
               Cancel
             </Button>
-            <Button onClick={handleUpdate} disabled={updateRequest.isPending}>
+            <Button onClick={handleUpdate} disabled={updateRequest.isPending || isSendingEmail}>
               Save Changes
             </Button>
           </DialogFooter>
