@@ -50,6 +50,7 @@ import AdminPayments from "./pages/admin/Payments";
 import AdminShipping from "./pages/admin/Shipping";
 import AdminNotifications from "./pages/admin/Notifications";
 import AdminSettings from "./pages/admin/Settings";
+import AdminExportCenter from "./pages/admin/ExportCenter";
 import AdminInventory from "./pages/admin/Inventory";
 
 const queryClient = new QueryClient();
@@ -107,6 +108,7 @@ const App = () => (
               <Route path="inventory" element={<AdminInventory />} />
               <Route path="notifications" element={<AdminNotifications />} />
               <Route path="settings" element={<AdminSettings />} />
+              <Route path="export" element={<AdminExportCenter />} />
             </Route>
 
             {/* 404 */}
