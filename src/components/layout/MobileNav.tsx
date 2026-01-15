@@ -64,7 +64,7 @@ export default function MobileNav() {
         <div className="relative flex items-center justify-around h-[68px] px-1">
           {navItems.map((item, index) => {
           const active = isActive(item.href);
-          return <Link key={item.href} to={item.href} className="flex flex-col items-center justify-center flex-1 h-full relative group">
+          return <Link key={item.label} to={item.href} className="flex flex-col items-center justify-center flex-1 h-full relative group">
                 <motion.div whileTap={{
               scale: 0.85
             }} whileHover={{
