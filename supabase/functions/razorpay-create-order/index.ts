@@ -84,7 +84,12 @@ serve(async (req) => {
     // Amount should be in paise (smallest currency unit)
     const amountInPaise = Math.round(amount * 100);
 
-    console.log("Creating order with amount:", amountInPaise, "paise");
+    // Generate short receipt (max 40 chars)
+    const shortReceipt = receipt 
+      ? receipt.substring(0, 40) 
+      : `rcpt_${Date.now().toString(36)}`;
+
+    console.log("Creating order with amount:", amountInPaise, "paise, receipt:", shortReceipt);
 
     // Create Razorpay order using their API
     const auth = btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`);
@@ -98,7 +103,7 @@ serve(async (req) => {
       body: JSON.stringify({
         amount: amountInPaise,
         currency,
-        receipt: receipt || `rcpt_${Date.now()}`,
+        receipt: shortReceipt,
         notes: notes || {},
       }),
     });
