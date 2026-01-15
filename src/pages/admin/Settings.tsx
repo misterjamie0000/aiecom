@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Save, Store, Mail, Globe, Palette, CreditCard, Eye, EyeOff, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Settings, Save, Store, Mail, Globe, Palette, CreditCard, Eye, EyeOff, AlertTriangle, CheckCircle2, ToggleRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -43,6 +43,11 @@ export default function AdminSettings() {
     reviews_moderation: true,
   });
 
+  const [featureSettings, setFeatureSettings] = useState({
+    suppliers_enabled: true,
+    purchase_orders_enabled: true,
+  });
+
   const [paymentSettings, setPaymentSettings] = useState({
     razorpay_enabled: true,
     razorpay_key_id: '',
@@ -63,11 +68,13 @@ export default function AdminSettings() {
       const seoSetting = settings.find(s => s.key === 'seo_settings');
       const generalSetting = settings.find(s => s.key === 'general_settings');
       const paymentSetting = settings.find(s => s.key === 'payment_gateway');
+      const featureSetting = settings.find(s => s.key === 'feature_settings');
       
       if (storeSetting?.value) setStoreSettings(prev => ({ ...prev, ...(storeSetting.value as any) }));
       if (seoSetting?.value) setSeoSettings(prev => ({ ...prev, ...(seoSetting.value as any) }));
       if (generalSetting?.value) setGeneralSettings(prev => ({ ...prev, ...(generalSetting.value as any) }));
       if (paymentSetting?.value) setPaymentSettings(prev => ({ ...prev, ...(paymentSetting.value as any) }));
+      if (featureSetting?.value) setFeatureSettings(prev => ({ ...prev, ...(featureSetting.value as any) }));
     }
   }, [settings]);
   
@@ -89,6 +96,10 @@ export default function AdminSettings() {
       value: paymentSettings, 
       description: 'Payment gateway settings' 
     });
+  };
+
+  const handleSaveFeatures = async () => {
+    await upsertSetting.mutateAsync({ key: 'feature_settings', value: featureSettings, description: 'Feature toggles' });
   };
   
   if (isLoading) {
@@ -124,6 +135,10 @@ export default function AdminSettings() {
           <TabsTrigger value="general" className="gap-2">
             <Settings className="w-4 h-4" />
             General
+          </TabsTrigger>
+          <TabsTrigger value="features" className="gap-2">
+            <ToggleRight className="w-4 h-4" />
+            Features
           </TabsTrigger>
         </TabsList>
         
@@ -490,6 +505,43 @@ export default function AdminSettings() {
               <Button onClick={handleSaveGeneral} disabled={upsertSetting.isPending}>
                 <Save className="w-4 h-4 mr-2" />
                 Save General Settings
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="features">
+          <Card>
+            <CardHeader>
+              <CardTitle>Feature Toggles</CardTitle>
+              <CardDescription>Enable or disable admin panel features</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Suppliers Management</Label>
+                  <p className="text-sm text-muted-foreground">Enable supplier management in admin panel</p>
+                </div>
+                <Switch
+                  checked={featureSettings.suppliers_enabled}
+                  onCheckedChange={(checked) => setFeatureSettings({ ...featureSettings, suppliers_enabled: checked })}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Purchase Orders</Label>
+                  <p className="text-sm text-muted-foreground">Enable purchase order management in admin panel</p>
+                </div>
+                <Switch
+                  checked={featureSettings.purchase_orders_enabled}
+                  onCheckedChange={(checked) => setFeatureSettings({ ...featureSettings, purchase_orders_enabled: checked })}
+                />
+              </div>
+              
+              <Button onClick={handleSaveFeatures} disabled={upsertSetting.isPending}>
+                <Save className="w-4 h-4 mr-2" />
+                Save Feature Settings
               </Button>
             </CardContent>
           </Card>
