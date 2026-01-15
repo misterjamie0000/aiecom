@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Save, Store, Mail, Globe, Palette, CreditCard, Eye, EyeOff, AlertTriangle, CheckCircle2, ToggleRight, Info } from 'lucide-react';
+import { Settings, Save, Store, Mail, Globe, Palette, CreditCard, Eye, EyeOff, AlertTriangle, CheckCircle2, ToggleRight, Info, Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,6 +47,8 @@ export default function AdminSettings() {
     suppliers_enabled: true,
     purchase_orders_enabled: true,
   });
+
+  const [noteLanguage, setNoteLanguage] = useState<'en' | 'hi'>('en');
 
   const [paymentSettings, setPaymentSettings] = useState({
     razorpay_enabled: true,
@@ -520,23 +522,60 @@ export default function AdminSettings() {
               <Alert className="bg-blue-50 border-blue-200 text-blue-800">
                 <Info className="h-4 w-4" />
                 <AlertDescription className="space-y-2">
-                  <p className="font-medium">इन Features का उपयोग कब करें?</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li><strong>Suppliers Management:</strong> यदि आप अपने suppliers को track करना चाहते हैं - उनकी contact info, GST details, payment terms आदि।</li>
-                    <li><strong>Purchase Orders:</strong> यदि आप suppliers से stock order करते हैं और inventory को automatically update करना चाहते हैं।</li>
-                  </ul>
-                  <p className="font-medium mt-3">कब ON रखें?</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>जब आप multiple suppliers से products खरीदते हैं</li>
-                    <li>जब inventory tracking और stock management जरूरी हो</li>
-                    <li>जब आप purchase history maintain करना चाहते हैं</li>
-                  </ul>
-                  <p className="font-medium mt-3">कब OFF रखें?</p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>छोटे store जहाँ manual inventory update होता है</li>
-                    <li>जब suppliers का record रखने की जरूरत नहीं है</li>
-                    <li>Admin panel को simple और clutter-free रखने के लिए</li>
-                  </ul>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-medium">
+                      {noteLanguage === 'hi' ? 'इन Features का उपयोग कब करें?' : 'When to use these Features?'}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setNoteLanguage(noteLanguage === 'hi' ? 'en' : 'hi')}
+                      className="gap-1 h-7 text-xs bg-white"
+                    >
+                      <Languages className="w-3 h-3" />
+                      {noteLanguage === 'hi' ? 'English' : 'हिंदी'}
+                    </Button>
+                  </div>
+                  
+                  {noteLanguage === 'hi' ? (
+                    <>
+                      <ul className="list-disc list-inside space-y-1 text-sm">
+                        <li><strong>Suppliers Management:</strong> यदि आप अपने suppliers को track करना चाहते हैं - उनकी contact info, GST details, payment terms आदि।</li>
+                        <li><strong>Purchase Orders:</strong> यदि आप suppliers से stock order करते हैं और inventory को automatically update करना चाहते हैं।</li>
+                      </ul>
+                      <p className="font-medium mt-3">कब ON रखें?</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm">
+                        <li>जब आप multiple suppliers से products खरीदते हैं</li>
+                        <li>जब inventory tracking और stock management जरूरी हो</li>
+                        <li>जब आप purchase history maintain करना चाहते हैं</li>
+                      </ul>
+                      <p className="font-medium mt-3">कब OFF रखें?</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm">
+                        <li>छोटे store जहाँ manual inventory update होता है</li>
+                        <li>जब suppliers का record रखने की जरूरत नहीं है</li>
+                        <li>Admin panel को simple और clutter-free रखने के लिए</li>
+                      </ul>
+                    </>
+                  ) : (
+                    <>
+                      <ul className="list-disc list-inside space-y-1 text-sm">
+                        <li><strong>Suppliers Management:</strong> Track your suppliers - their contact info, GST details, payment terms, etc.</li>
+                        <li><strong>Purchase Orders:</strong> Order stock from suppliers and automatically update inventory when received.</li>
+                      </ul>
+                      <p className="font-medium mt-3">When to keep ON?</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm">
+                        <li>When you purchase products from multiple suppliers</li>
+                        <li>When inventory tracking and stock management is essential</li>
+                        <li>When you want to maintain purchase history records</li>
+                      </ul>
+                      <p className="font-medium mt-3">When to keep OFF?</p>
+                      <ul className="list-disc list-inside space-y-1 text-sm">
+                        <li>Small stores with manual inventory updates</li>
+                        <li>When supplier records aren't necessary</li>
+                        <li>To keep the admin panel simple and clutter-free</li>
+                      </ul>
+                    </>
+                  )}
                 </AlertDescription>
               </Alert>
               <div className="flex items-center justify-between">
