@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Package, Sparkles, Star } from 'lucide-react';
+import { soundManager } from '@/lib/sounds';
 
 interface OrderSuccessAnimationProps {
   onComplete: () => void;
@@ -107,6 +108,9 @@ export default function OrderSuccessAnimation({ onComplete, duration = 4000 }: O
   const [stage, setStage] = useState<'burst' | 'celebrate' | 'complete'>('burst');
 
   useEffect(() => {
+    // Play celebration sounds
+    soundManager.playOrderSuccessSequence();
+    
     const timer1 = setTimeout(() => setStage('celebrate'), 800);
     const timer2 = setTimeout(() => setStage('complete'), 2000);
     const timer3 = setTimeout(() => onComplete(), duration);
