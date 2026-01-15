@@ -29,6 +29,8 @@ import {
   RotateCcw,
   Warehouse,
   FileDown,
+  Building2,
+  ClipboardList,
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -37,6 +39,8 @@ const sidebarItems = [
   { icon: Package, label: 'Products', href: '/admin/products' },
   { icon: Warehouse, label: 'Inventory', href: '/admin/inventory' },
   { icon: FolderTree, label: 'Categories', href: '/admin/categories' },
+  { icon: Building2, label: 'Suppliers', href: '/admin/suppliers' },
+  { icon: ClipboardList, label: 'Purchase Orders', href: '/admin/purchase-orders' },
   { icon: Users, label: 'Customers', href: '/admin/customers' },
   { icon: RotateCcw, label: 'Returns', href: '/admin/returns' },
   { icon: Tag, label: 'Coupons', href: '/admin/coupons' },

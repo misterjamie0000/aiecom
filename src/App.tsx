@@ -52,6 +52,8 @@ import AdminNotifications from "./pages/admin/Notifications";
 import AdminSettings from "./pages/admin/Settings";
 import AdminExportCenter from "./pages/admin/ExportCenter";
 import AdminInventory from "./pages/admin/Inventory";
+import AdminSuppliers from "./pages/admin/Suppliers";
+import AdminPurchaseOrders from "./pages/admin/PurchaseOrders";
 
 const queryClient = new QueryClient();
 
@@ -106,6 +108,8 @@ const App = () => (
               <Route path="payments" element={<AdminPayments />} />
               <Route path="shipping" element={<AdminShipping />} />
               <Route path="inventory" element={<AdminInventory />} />
+              <Route path="suppliers" element={<AdminSuppliers />} />
+              <Route path="purchase-orders" element={<AdminPurchaseOrders />} />
               <Route path="notifications" element={<AdminNotifications />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="export" element={<AdminExportCenter />} />
