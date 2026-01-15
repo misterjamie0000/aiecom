@@ -1,9 +1,12 @@
 import { motion } from 'framer-motion';
-import { Truck, Tag, ShieldCheck } from 'lucide-react';
+import { Truck, Tag, ShieldCheck, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { useState } from 'react';
+import { useValidateCoupon } from '@/hooks/useCoupons';
+import { toast } from 'sonner';
+import { Tables } from '@/integrations/supabase/types';
 
 interface CartSummaryProps {
   subtotal: number;
@@ -14,6 +17,7 @@ interface CartSummaryProps {
   itemCount: number;
   onCheckout: () => void;
   isCheckingOut?: boolean;
+  onCouponApplied?: (couponCode: string, discountAmount: number) => void;
 }
 
 export default function CartSummary({
@@ -25,17 +29,46 @@ export default function CartSummary({
   itemCount,
   onCheckout,
   isCheckingOut,
+  onCouponApplied,
 }: CartSummaryProps) {
   const [couponCode, setCouponCode] = useState('');
-  const [couponApplied, setCouponApplied] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountAmount: number;
+    coupon: Tables<'coupons'>;
+  } | null>(null);
 
-  const handleApplyCoupon = () => {
-    if (couponCode.toUpperCase() === 'FIRST20') {
-      setCouponApplied(true);
+  const validateCoupon = useValidateCoupon();
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+
+    try {
+      const result = await validateCoupon.mutateAsync({
+        code: couponCode.trim(),
+        orderTotal: subtotal,
+      });
+
+      setAppliedCoupon({
+        code: result.coupon.code,
+        discountAmount: result.discountAmount,
+        coupon: result.coupon,
+      });
+      
+      toast.success(`Coupon "${result.coupon.code}" applied! You save ₹${result.discountAmount}`);
+      onCouponApplied?.(result.coupon.code, result.discountAmount);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to apply coupon');
     }
   };
 
-  const couponDiscount = couponApplied ? Math.round(subtotal * 0.2) : 0;
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    onCouponApplied?.('', 0);
+  };
+
+  const couponDiscount = appliedCoupon?.discountAmount || 0;
   const finalTotal = total - couponDiscount;
 
   return (
@@ -59,9 +92,17 @@ export default function CartSummary({
           </div>
         )}
 
-        {couponApplied && (
-          <div className="flex justify-between text-green-600">
-            <span>Coupon (FIRST20)</span>
+        {appliedCoupon && (
+          <div className="flex justify-between text-green-600 items-center">
+            <span className="flex items-center gap-1">
+              Coupon ({appliedCoupon.code})
+              <button 
+                onClick={handleRemoveCoupon}
+                className="p-0.5 hover:bg-muted rounded"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
             <span>-₹{couponDiscount}</span>
           </div>
         )}
@@ -81,7 +122,7 @@ export default function CartSummary({
         <span>₹{finalTotal}</span>
       </div>
 
-      {discount > 0 && (
+      {(discount > 0 || couponDiscount > 0) && (
         <p className="text-sm text-green-600 mb-4">
           You're saving ₹{discount + couponDiscount} on this order!
         </p>
@@ -94,20 +135,31 @@ export default function CartSummary({
           <Input
             placeholder="Enter code"
             value={couponCode}
-            onChange={(e) => setCouponCode(e.target.value)}
-            disabled={couponApplied}
+            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+            disabled={!!appliedCoupon || validateCoupon.isPending}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !appliedCoupon) {
+                handleApplyCoupon();
+              }
+            }}
           />
           <Button 
             variant="outline" 
             onClick={handleApplyCoupon}
-            disabled={couponApplied || !couponCode}
+            disabled={!!appliedCoupon || !couponCode.trim() || validateCoupon.isPending}
           >
-            {couponApplied ? 'Applied' : 'Apply'}
+            {validateCoupon.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : appliedCoupon ? (
+              'Applied'
+            ) : (
+              'Apply'
+            )}
           </Button>
         </div>
-        {!couponApplied && (
+        {!appliedCoupon && (
           <p className="text-xs text-muted-foreground mt-1">
-            Try: FIRST20 for 20% off
+            Try: WELCOME20 for 20% off
           </p>
         )}
       </div>
