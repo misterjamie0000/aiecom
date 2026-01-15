@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Save, Store, Mail, Globe, Palette, CreditCard, Eye, EyeOff, AlertTriangle, CheckCircle2, ToggleRight } from 'lucide-react';
+import { Settings, Save, Store, Mail, Globe, Palette, CreditCard, Eye, EyeOff, AlertTriangle, CheckCircle2, ToggleRight, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -517,6 +517,28 @@ export default function AdminSettings() {
               <CardDescription>Enable or disable admin panel features</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <Alert className="bg-blue-50 border-blue-200 text-blue-800">
+                <Info className="h-4 w-4" />
+                <AlertDescription className="space-y-2">
+                  <p className="font-medium">इन Features का उपयोग कब करें?</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li><strong>Suppliers Management:</strong> यदि आप अपने suppliers को track करना चाहते हैं - उनकी contact info, GST details, payment terms आदि।</li>
+                    <li><strong>Purchase Orders:</strong> यदि आप suppliers से stock order करते हैं और inventory को automatically update करना चाहते हैं।</li>
+                  </ul>
+                  <p className="font-medium mt-3">कब ON रखें?</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>जब आप multiple suppliers से products खरीदते हैं</li>
+                    <li>जब inventory tracking और stock management जरूरी हो</li>
+                    <li>जब आप purchase history maintain करना चाहते हैं</li>
+                  </ul>
+                  <p className="font-medium mt-3">कब OFF रखें?</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>छोटे store जहाँ manual inventory update होता है</li>
+                    <li>जब suppliers का record रखने की जरूरत नहीं है</li>
+                    <li>Admin panel को simple और clutter-free रखने के लिए</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Suppliers Management</Label>
