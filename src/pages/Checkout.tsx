@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MapPin, CreditCard, Truck, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, CreditCard, Truck, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
@@ -12,8 +11,21 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCart, useCartSummary, useClearCart } from '@/hooks/useCart';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import CheckoutAddressSection from '@/components/checkout/CheckoutAddressSection';
 
 type Step = 'address' | 'payment' | 'confirmation';
+
+interface AddressData {
+  id?: string;
+  fullName: string;
+  phone: string;
+  alternativePhone: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  pincode: string;
+}
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -25,17 +37,7 @@ export default function Checkout() {
   const [step, setStep] = useState<Step>('address');
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
-  
-  const [address, setAddress] = useState({
-    fullName: '',
-    phone: '',
-    addressLine1: '',
-    addressLine2: '',
-    city: '',
-    state: '',
-    pincode: '',
-  });
-  
+  const [address, setAddress] = useState<AddressData | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'razorpay'>('cod');
 
   if (!user) {
@@ -60,8 +62,8 @@ export default function Checkout() {
     );
   }
 
-  const handleAddressSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddressContinue = (addressData: AddressData) => {
+    setAddress(addressData);
     setStep('payment');
   };
 
@@ -71,6 +73,8 @@ export default function Checkout() {
     try {
       // Generate order number
       const { data: orderNumber } = await supabase.rpc('generate_order_number');
+
+      if (!address) throw new Error('Address not set');
 
       // Create order
       const { data: order, error: orderError } = await supabase
@@ -88,6 +92,7 @@ export default function Checkout() {
           shipping_address: {
             full_name: address.fullName,
             phone: address.phone,
+            alternative_phone: address.alternativePhone || null,
             address_line1: address.addressLine1,
             address_line2: address.addressLine2,
             city: address.city,
@@ -190,98 +195,7 @@ export default function Checkout() {
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           {step === 'address' && (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5" />
-                    Delivery Address
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleAddressSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="fullName">Full Name</Label>
-                        <Input
-                          id="fullName"
-                          value={address.fullName}
-                          onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Input
-                          id="phone"
-                          value={address.phone}
-                          onChange={(e) => setAddress({ ...address, phone: e.target.value })}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="addressLine1">Address Line 1</Label>
-                      <Input
-                        id="addressLine1"
-                        value={address.addressLine1}
-                        onChange={(e) => setAddress({ ...address, addressLine1: e.target.value })}
-                        placeholder="House/Flat No., Building Name"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="addressLine2">Address Line 2</Label>
-                      <Input
-                        id="addressLine2"
-                        value={address.addressLine2}
-                        onChange={(e) => setAddress({ ...address, addressLine2: e.target.value })}
-                        placeholder="Street, Area, Landmark"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="city">City</Label>
-                        <Input
-                          id="city"
-                          value={address.city}
-                          onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="state">State</Label>
-                        <Input
-                          id="state"
-                          value={address.state}
-                          onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="pincode">Pincode</Label>
-                        <Input
-                          id="pincode"
-                          value={address.pincode}
-                          onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <Button type="submit" className="w-full" size="lg">
-                      Continue to Payment
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </motion.div>
+            <CheckoutAddressSection onContinue={handleAddressContinue} />
           )}
 
           {step === 'payment' && (
