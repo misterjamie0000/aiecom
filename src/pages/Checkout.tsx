@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowLeft, CreditCard, Truck, CheckCircle2, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -12,9 +12,8 @@ import { useCart, useCartSummary, useClearCart } from '@/hooks/useCart';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CheckoutAddressSection from '@/components/checkout/CheckoutAddressSection';
-import OrderSuccessAnimation from '@/components/checkout/OrderSuccessAnimation';
 
-type Step = 'address' | 'payment' | 'animation' | 'confirmation';
+type Step = 'address' | 'payment' | 'confirmation';
 
 interface AddressData {
   id?: string;
@@ -52,8 +51,8 @@ export default function Checkout() {
     );
   }
 
-  // Only show empty cart if not in animation or confirmation step
-  if ((!cartItems || cartItems.length === 0) && step !== 'animation' && step !== 'confirmation') {
+  // Only show empty cart if not in confirmation step
+  if ((!cartItems || cartItems.length === 0) && step !== 'confirmation') {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <p>Your cart is empty.</p>
@@ -129,7 +128,8 @@ export default function Checkout() {
       await clearCart.mutateAsync();
 
       setOrderId(order.order_number);
-      setStep('animation'); // Show animation first
+      setStep('confirmation'); // Go directly to confirmation
+      toast.success('Order placed successfully!');
     } catch (error: any) {
       toast.error('Failed to place order: ' + error.message);
     } finally {
@@ -137,17 +137,6 @@ export default function Checkout() {
     }
   };
 
-  // Show celebration animation
-  if (step === 'animation') {
-    return (
-      <AnimatePresence>
-        <OrderSuccessAnimation 
-          onComplete={() => setStep('confirmation')} 
-          duration={4000}
-        />
-      </AnimatePresence>
-    );
-  }
 
   if (step === 'confirmation') {
     return (
