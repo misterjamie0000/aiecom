@@ -8,33 +8,39 @@ export default function MobileNav() {
   const {
     user
   } = useAuth();
-  const navItems = [{
-    icon: Home,
-    label: 'Home',
-    href: '/',
-    gradient: 'from-rose-500 to-pink-500'
-  }, {
-    icon: Grid3X3,
-    label: 'Categories',
-    href: '/categories',
-    gradient: 'from-violet-500 to-purple-500'
-  }, {
-    icon: ShoppingBag,
-    label: 'Cart',
-    href: '/cart',
-    badge: 0,
-    gradient: 'from-amber-500 to-orange-500'
-  }, {
-    icon: Package,
-    label: 'Orders',
-    href: user ? '/orders' : '/auth',
-    gradient: 'from-emerald-500 to-teal-500'
-  }, {
-    icon: User,
-    label: 'Profile',
-    href: user ? '/account' : '/auth',
-    gradient: 'from-blue-500 to-indigo-500'
-  }];
+  const navItems = [
+    {
+      icon: Home,
+      label: 'Home',
+      href: '/',
+      gradient: 'from-rose-500 to-pink-500'
+    },
+    {
+      icon: Grid3X3,
+      label: 'Categories',
+      href: '/categories',
+      gradient: 'from-violet-500 to-purple-500'
+    },
+    {
+      icon: ShoppingBag,
+      label: 'Cart',
+      href: '/cart',
+      badge: 0,
+      gradient: 'from-amber-500 to-orange-500'
+    },
+    {
+      icon: Package,
+      label: 'Orders',
+      href: user ? '/orders' : '/auth',
+      gradient: 'from-emerald-500 to-teal-500'
+    },
+    {
+      icon: User,
+      label: 'Profile',
+      href: user ? '/account' : '/auth',
+      gradient: 'from-blue-500 to-indigo-500'
+    }
+  ];
   const isActive = (href: string) => {
     if (href === '/') return location.pathname === '/';
     return location.pathname.startsWith(href);
