@@ -44,10 +44,12 @@ import {
   Filter,
   Download,
   Upload,
-  FileSpreadsheet
+  FileSpreadsheet,
+  BarChart3
 } from 'lucide-react';
 import { useInventorySummary, useStockMovements, useAdjustStock } from '@/hooks/useInventory';
 import { useExportInventoryCsv, useImportInventoryCsv, downloadImportTemplate } from '@/hooks/useInventoryCsv';
+import { InventoryReports } from '@/components/admin/InventoryReports';
 import { format } from 'date-fns';
 
 export default function AdminInventory() {
@@ -63,6 +65,7 @@ export default function AdminInventory() {
   const [stockFilter, setStockFilter] = useState<'all' | 'out' | 'low' | 'in'>('all');
   const [adjustDialogOpen, setAdjustDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [reportDateRange, setReportDateRange] = useState('30');
   const [importResult, setImportResult] = useState<{
     successCount: number;
     errorCount: number;
@@ -278,6 +281,10 @@ export default function AdminInventory() {
         <TabsList>
           <TabsTrigger value="products">Stock Levels</TabsTrigger>
           <TabsTrigger value="history">Stock History</TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Reports
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="products" className="space-y-4">
@@ -429,6 +436,27 @@ export default function AdminInventory() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-4">
+          <div className="flex justify-end mb-4">
+            <Select value={reportDateRange} onValueChange={setReportDateRange}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Last 7 days</SelectItem>
+                <SelectItem value="30">Last 30 days</SelectItem>
+                <SelectItem value="90">Last 90 days</SelectItem>
+                <SelectItem value="365">Last year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <InventoryReports 
+            movements={movements || []} 
+            products={products} 
+            dateRange={parseInt(reportDateRange)} 
+          />
         </TabsContent>
       </Tabs>
 
