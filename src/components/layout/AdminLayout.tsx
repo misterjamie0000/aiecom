@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -33,27 +34,27 @@ import {
   ClipboardList,
 } from 'lucide-react';
 
-const sidebarItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
-  { icon: ShoppingCart, label: 'Orders', href: '/admin/orders' },
-  { icon: Package, label: 'Products', href: '/admin/products' },
-  { icon: Warehouse, label: 'Inventory', href: '/admin/inventory' },
-  { icon: FolderTree, label: 'Categories', href: '/admin/categories' },
-  { icon: Building2, label: 'Suppliers', href: '/admin/suppliers' },
-  { icon: ClipboardList, label: 'Purchase Orders', href: '/admin/purchase-orders' },
-  { icon: Users, label: 'Customers', href: '/admin/customers' },
-  { icon: RotateCcw, label: 'Returns', href: '/admin/returns' },
-  { icon: Tag, label: 'Coupons', href: '/admin/coupons' },
-  { icon: Gift, label: 'Loyalty', href: '/admin/loyalty' },
-  { icon: MessageSquare, label: 'Reviews', href: '/admin/reviews' },
-  { icon: ImageIcon, label: 'Banners', href: '/admin/banners' },
-  { icon: FileText, label: 'Pages', href: '/admin/pages' },
-  { icon: BarChart3, label: 'Reports', href: '/admin/reports' },
-  { icon: FileDown, label: 'Tally Export', href: '/admin/export' },
-  { icon: CreditCard, label: 'Payments', href: '/admin/payments' },
-  { icon: Truck, label: 'Shipping', href: '/admin/shipping' },
-  { icon: Bell, label: 'Notifications', href: '/admin/notifications' },
-  { icon: Settings, label: 'Settings', href: '/admin/settings' },
+const allSidebarItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/admin', feature: null },
+  { icon: ShoppingCart, label: 'Orders', href: '/admin/orders', feature: null },
+  { icon: Package, label: 'Products', href: '/admin/products', feature: null },
+  { icon: Warehouse, label: 'Inventory', href: '/admin/inventory', feature: null },
+  { icon: FolderTree, label: 'Categories', href: '/admin/categories', feature: null },
+  { icon: Building2, label: 'Suppliers', href: '/admin/suppliers', feature: 'suppliers_enabled' },
+  { icon: ClipboardList, label: 'Purchase Orders', href: '/admin/purchase-orders', feature: 'purchase_orders_enabled' },
+  { icon: Users, label: 'Customers', href: '/admin/customers', feature: null },
+  { icon: RotateCcw, label: 'Returns', href: '/admin/returns', feature: null },
+  { icon: Tag, label: 'Coupons', href: '/admin/coupons', feature: null },
+  { icon: Gift, label: 'Loyalty', href: '/admin/loyalty', feature: null },
+  { icon: MessageSquare, label: 'Reviews', href: '/admin/reviews', feature: null },
+  { icon: ImageIcon, label: 'Banners', href: '/admin/banners', feature: null },
+  { icon: FileText, label: 'Pages', href: '/admin/pages', feature: null },
+  { icon: BarChart3, label: 'Reports', href: '/admin/reports', feature: null },
+  { icon: FileDown, label: 'Tally Export', href: '/admin/export', feature: null },
+  { icon: CreditCard, label: 'Payments', href: '/admin/payments', feature: null },
+  { icon: Truck, label: 'Shipping', href: '/admin/shipping', feature: null },
+  { icon: Bell, label: 'Notifications', href: '/admin/notifications', feature: null },
+  { icon: Settings, label: 'Settings', href: '/admin/settings', feature: null },
 ];
 
 export default function AdminLayout() {
@@ -61,6 +62,25 @@ export default function AdminLayout() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const location = useLocation();
   const { user, isAdmin, isLoading, signOut } = useAuth();
+  const { data: settings } = useSiteSettings();
+
+  // Get feature settings
+  const featureSettings = useMemo(() => {
+    const featureSetting = settings?.find(s => s.key === 'feature_settings');
+    return {
+      suppliers_enabled: true,
+      purchase_orders_enabled: true,
+      ...(featureSetting?.value as any || {}),
+    };
+  }, [settings]);
+
+  // Filter sidebar items based on feature settings
+  const sidebarItems = useMemo(() => {
+    return allSidebarItems.filter(item => {
+      if (!item.feature) return true;
+      return featureSettings[item.feature as keyof typeof featureSettings] !== false;
+    });
+  }, [featureSettings]);
 
   // Show loading state
   if (isLoading) {
