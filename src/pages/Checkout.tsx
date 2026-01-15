@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, CreditCard, Truck, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -12,8 +12,9 @@ import { useCart, useCartSummary, useClearCart } from '@/hooks/useCart';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CheckoutAddressSection from '@/components/checkout/CheckoutAddressSection';
+import OrderSuccessAnimation from '@/components/checkout/OrderSuccessAnimation';
 
-type Step = 'address' | 'payment' | 'confirmation';
+type Step = 'address' | 'payment' | 'animation' | 'confirmation';
 
 interface AddressData {
   id?: string;
@@ -127,8 +128,7 @@ export default function Checkout() {
       await clearCart.mutateAsync();
 
       setOrderId(order.order_number);
-      setStep('confirmation');
-      toast.success('Order placed successfully!');
+      setStep('animation'); // Show animation first
     } catch (error: any) {
       toast.error('Failed to place order: ' + error.message);
     } finally {
@@ -136,30 +136,71 @@ export default function Checkout() {
     }
   };
 
+  // Show celebration animation
+  if (step === 'animation') {
+    return (
+      <AnimatePresence>
+        <OrderSuccessAnimation 
+          onComplete={() => setStep('confirmation')} 
+          duration={4000}
+        />
+      </AnimatePresence>
+    );
+  }
+
   if (step === 'confirmation') {
     return (
-      <div className="container mx-auto px-4 py-16 max-w-md text-center">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="container mx-auto px-4 py-16 max-w-md text-center"
+      >
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6"
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', duration: 0.8 }}
+          className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-500/30"
         >
-          <CheckCircle2 className="w-10 h-10 text-green-600" />
+          <CheckCircle2 className="w-12 h-12 text-white" />
         </motion.div>
-        <h1 className="text-2xl font-bold mb-2">Order Confirmed!</h1>
-        <p className="text-muted-foreground mb-4">
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-2xl font-bold mb-2"
+        >
+          Order Confirmed!
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="text-muted-foreground mb-4"
+        >
           Thank you for your order. Your order number is:
-        </p>
-        <p className="text-xl font-mono font-bold text-primary mb-8">{orderId}</p>
-        <div className="flex flex-col gap-3">
-          <Button asChild>
-            <Link to="/account/orders">View Orders</Link>
+        </motion.p>
+        <motion.p 
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, type: 'spring' }}
+          className="text-xl font-mono font-bold text-primary mb-8 bg-primary/10 py-3 px-6 rounded-lg inline-block"
+        >
+          {orderId}
+        </motion.p>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="flex flex-col gap-3"
+        >
+          <Button asChild size="lg">
+            <Link to="/orders">View Orders</Link>
           </Button>
           <Button variant="outline" asChild>
             <Link to="/products">Continue Shopping</Link>
           </Button>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     );
   }
 
