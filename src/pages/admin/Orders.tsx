@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShoppingCart, Search, Eye, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
+import { ShoppingCart, Search, Eye, Package, Truck, CheckCircle, XCircle, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,9 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useOrders, useUpdateOrder } from '@/hooks/useOrders';
 import { format } from 'date-fns';
+import { buildOrderEmailParams, sendOrderEmail } from '@/hooks/useOrderEmails';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -64,6 +67,55 @@ export default function AdminOrders() {
     }
     
     await updateOrder.mutateAsync(updates);
+
+    // Send email notification for status change
+    const order = orders?.find(o => o.id === orderId);
+    if (order) {
+      sendStatusEmail(order, status);
+    }
+  };
+
+  const sendStatusEmail = async (order: any, newStatus: string) => {
+    // Map status to email type
+    const emailTypeMap: Record<string, 'order_confirmed' | 'order_shipped' | 'order_delivered' | 'order_cancelled'> = {
+      confirmed: 'order_confirmed',
+      shipped: 'order_shipped',
+      delivered: 'order_delivered',
+      cancelled: 'order_cancelled',
+    };
+
+    const emailType = emailTypeMap[newStatus];
+    if (!emailType) return;
+
+    // Get user email from profiles
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('id', order.user_id)
+      .single();
+
+    // If no profile email, try auth users
+    let userEmail = profile?.email;
+    if (!userEmail) {
+      // We can't get the email directly, but the order should have been placed by a user
+      // In production, you'd store the email in the order or have admin email it
+      console.log('No email found for user, skipping email notification');
+      return;
+    }
+
+    const params = buildOrderEmailParams(
+      order,
+      emailType,
+      userEmail,
+      order.tracking_number,
+      order.tracking_url,
+      order.cancel_reason
+    );
+
+    const success = await sendOrderEmail(params);
+    if (success) {
+      toast.success(`${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)} email sent to customer`);
+    }
   };
 
   const filteredOrders = orders?.filter(o => 

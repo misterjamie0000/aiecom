@@ -13,6 +13,7 @@ import { useRazorpay } from '@/hooks/useRazorpay';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CheckoutAddressSection from '@/components/checkout/CheckoutAddressSection';
+import { sendOrderEmail } from '@/hooks/useOrderEmails';
 
 type Step = 'address' | 'payment' | 'confirmation';
 
@@ -158,6 +159,38 @@ export default function Checkout() {
         if (paymentSuccess) {
           // Clear cart and show confirmation
           await clearCart.mutateAsync();
+          
+          // Send order confirmation email
+          sendOrderEmail({
+            email: user.email || '',
+            customerName: address?.fullName || 'Customer',
+            orderNumber: order.order_number,
+            emailType: 'order_placed',
+            orderDetails: {
+              items: cartItems!.map(item => ({
+                product_name: item.product.name,
+                quantity: item.quantity,
+                unit_price: Number(item.product.price),
+                total_price: Number(item.product.price) * item.quantity,
+              })),
+              subtotal: summary.subtotal,
+              taxAmount: 0,
+              shippingAmount: summary.shipping,
+              discountAmount: summary.discount,
+              totalAmount: summary.total,
+              paymentMethod: 'razorpay',
+              shippingAddress: {
+                full_name: address?.fullName || '',
+                address_line1: address?.addressLine1 || '',
+                address_line2: address?.addressLine2,
+                city: address?.city || '',
+                state: address?.state || '',
+                pincode: address?.pincode || '',
+                phone: address?.phone || '',
+              },
+            },
+          });
+          
           setOrderId(order.order_number);
           setStep('confirmation');
         } else {
@@ -186,6 +219,37 @@ export default function Checkout() {
 
         // Clear cart
         await clearCart.mutateAsync();
+
+        // Send order confirmation email
+        sendOrderEmail({
+          email: user.email || '',
+          customerName: address?.fullName || 'Customer',
+          orderNumber: order.order_number,
+          emailType: 'order_placed',
+          orderDetails: {
+            items: cartItems!.map(item => ({
+              product_name: item.product.name,
+              quantity: item.quantity,
+              unit_price: Number(item.product.price),
+              total_price: Number(item.product.price) * item.quantity,
+            })),
+            subtotal: summary.subtotal,
+            taxAmount: 0,
+            shippingAmount: summary.shipping,
+            discountAmount: summary.discount,
+            totalAmount: summary.total,
+            paymentMethod: 'cod',
+            shippingAddress: {
+              full_name: address?.fullName || '',
+              address_line1: address?.addressLine1 || '',
+              address_line2: address?.addressLine2,
+              city: address?.city || '',
+              state: address?.state || '',
+              pincode: address?.pincode || '',
+              phone: address?.phone || '',
+            },
+          },
+        });
 
         setOrderId(order.order_number);
         setStep('confirmation');
