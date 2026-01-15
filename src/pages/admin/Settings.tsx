@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Settings, Save, Store, Mail, Globe, Palette } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Settings, Save, Store, Mail, Globe, Palette, CreditCard, Eye, EyeOff, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { useSiteSettings, useUpsertSetting } from '@/hooks/useSiteSettings';
 import { toast } from 'sonner';
 
@@ -40,19 +42,34 @@ export default function AdminSettings() {
     reviews_enabled: true,
     reviews_moderation: true,
   });
+
+  const [paymentSettings, setPaymentSettings] = useState({
+    razorpay_enabled: true,
+    razorpay_key_id: '',
+    razorpay_key_secret: '',
+    cod_enabled: true,
+    cod_min_order: 0,
+    cod_max_order: 50000,
+  });
+
+  const [showSecrets, setShowSecrets] = useState({
+    razorpay_key_secret: false,
+  });
   
   // Load settings from database
-  useState(() => {
+  useEffect(() => {
     if (settings) {
       const storeSetting = settings.find(s => s.key === 'store_info');
       const seoSetting = settings.find(s => s.key === 'seo_settings');
       const generalSetting = settings.find(s => s.key === 'general_settings');
+      const paymentSetting = settings.find(s => s.key === 'payment_gateway');
       
       if (storeSetting?.value) setStoreSettings(prev => ({ ...prev, ...(storeSetting.value as any) }));
       if (seoSetting?.value) setSeoSettings(prev => ({ ...prev, ...(seoSetting.value as any) }));
       if (generalSetting?.value) setGeneralSettings(prev => ({ ...prev, ...(generalSetting.value as any) }));
+      if (paymentSetting?.value) setPaymentSettings(prev => ({ ...prev, ...(paymentSetting.value as any) }));
     }
-  });
+  }, [settings]);
   
   const handleSaveStore = async () => {
     await upsertSetting.mutateAsync({ key: 'store_info', value: storeSettings, description: 'Store information' });
@@ -64,6 +81,14 @@ export default function AdminSettings() {
   
   const handleSaveGeneral = async () => {
     await upsertSetting.mutateAsync({ key: 'general_settings', value: generalSettings, description: 'General settings' });
+  };
+
+  const handleSavePayment = async () => {
+    await upsertSetting.mutateAsync({ 
+      key: 'payment_gateway', 
+      value: paymentSettings, 
+      description: 'Payment gateway settings' 
+    });
   };
   
   if (isLoading) {
@@ -83,10 +108,14 @@ export default function AdminSettings() {
       </div>
       
       <Tabs defaultValue="store" className="space-y-4">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="store" className="gap-2">
             <Store className="w-4 h-4" />
             Store Info
+          </TabsTrigger>
+          <TabsTrigger value="payment" className="gap-2">
+            <CreditCard className="w-4 h-4" />
+            Payment Gateway
           </TabsTrigger>
           <TabsTrigger value="seo" className="gap-2">
             <Globe className="w-4 h-4" />
@@ -179,6 +208,157 @@ export default function AdminSettings() {
               </Button>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="payment">
+          <div className="space-y-6">
+            {/* Razorpay Settings */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                        <CreditCard className="w-4 h-4 text-white" />
+                      </div>
+                      Razorpay
+                    </CardTitle>
+                    <CardDescription>Accept payments via UPI, Cards, Net Banking & Wallets</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {paymentSettings.razorpay_key_id ? (
+                      <Badge variant="default" className="bg-green-500">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Configured
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive">
+                        <AlertTriangle className="w-3 h-3 mr-1" />
+                        Not Configured
+                      </Badge>
+                    )}
+                    <Switch
+                      checked={paymentSettings.razorpay_enabled}
+                      onCheckedChange={(checked) => setPaymentSettings({ ...paymentSettings, razorpay_enabled: checked })}
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Get your API keys from <a href="https://dashboard.razorpay.com/app/keys" target="_blank" rel="noopener noreferrer" className="underline font-medium">Razorpay Dashboard → Settings → API Keys</a>
+                  </AlertDescription>
+                </Alert>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="razorpay_key_id">Key ID (Publishable)</Label>
+                    <Input
+                      id="razorpay_key_id"
+                      value={paymentSettings.razorpay_key_id}
+                      onChange={(e) => setPaymentSettings({ ...paymentSettings, razorpay_key_id: e.target.value })}
+                      placeholder="rzp_live_xxxxxxxxxx or rzp_test_xxxxxxxxxx"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Starts with rzp_live_ (production) or rzp_test_ (sandbox)
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="razorpay_key_secret">Key Secret</Label>
+                    <div className="relative">
+                      <Input
+                        id="razorpay_key_secret"
+                        type={showSecrets.razorpay_key_secret ? 'text' : 'password'}
+                        value={paymentSettings.razorpay_key_secret}
+                        onChange={(e) => setPaymentSettings({ ...paymentSettings, razorpay_key_secret: e.target.value })}
+                        placeholder="Enter your Razorpay Key Secret"
+                        className="pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full"
+                        onClick={() => setShowSecrets({ ...showSecrets, razorpay_key_secret: !showSecrets.razorpay_key_secret })}
+                      >
+                        {showSecrets.razorpay_key_secret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Keep this secret - never share publicly
+                    </p>
+                  </div>
+                </div>
+
+                <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-800">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Important:</strong> These keys are stored in your database settings. For production, 
+                    the actual API secrets should be configured in environment variables through the cloud settings 
+                    for enhanced security. Contact support if you need help with production setup.
+                  </AlertDescription>
+                </Alert>
+              </CardContent>
+            </Card>
+
+            {/* COD Settings */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-amber-500 rounded flex items-center justify-center">
+                        <Store className="w-4 h-4 text-white" />
+                      </div>
+                      Cash on Delivery
+                    </CardTitle>
+                    <CardDescription>Allow customers to pay when they receive their order</CardDescription>
+                  </div>
+                  <Switch
+                    checked={paymentSettings.cod_enabled}
+                    onCheckedChange={(checked) => setPaymentSettings({ ...paymentSettings, cod_enabled: checked })}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="cod_min_order">Minimum Order Value (₹)</Label>
+                    <Input
+                      id="cod_min_order"
+                      type="number"
+                      min="0"
+                      value={paymentSettings.cod_min_order}
+                      onChange={(e) => setPaymentSettings({ ...paymentSettings, cod_min_order: Number(e.target.value) })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Set to 0 for no minimum
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cod_max_order">Maximum Order Value (₹)</Label>
+                    <Input
+                      id="cod_max_order"
+                      type="number"
+                      min="0"
+                      value={paymentSettings.cod_max_order}
+                      onChange={(e) => setPaymentSettings({ ...paymentSettings, cod_max_order: Number(e.target.value) })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Set to 0 for no maximum
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button onClick={handleSavePayment} disabled={upsertSetting.isPending} size="lg">
+              <Save className="w-4 h-4 mr-2" />
+              Save Payment Settings
+            </Button>
+          </div>
         </TabsContent>
         
         <TabsContent value="seo">

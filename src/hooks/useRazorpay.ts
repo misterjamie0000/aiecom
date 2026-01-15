@@ -39,7 +39,7 @@ export function useRazorpay(): UseRazorpayReturn {
 
   const loadScript = useCallback((): Promise<boolean> => {
     return new Promise((resolve) => {
-      if (window.Razorpay) {
+      if (typeof window !== 'undefined' && window.Razorpay) {
         setIsScriptLoaded(true);
         resolve(true);
         return;
@@ -50,12 +50,14 @@ export function useRazorpay(): UseRazorpayReturn {
       script.async = true;
       
       script.onload = () => {
+        console.log('Razorpay script loaded successfully');
         setIsScriptLoaded(true);
         resolve(true);
       };
       
       script.onerror = () => {
         console.error('Failed to load Razorpay script');
+        toast.error('Failed to load payment gateway. Please refresh and try again.');
         resolve(false);
       };
       
@@ -65,16 +67,21 @@ export function useRazorpay(): UseRazorpayReturn {
 
   const initiatePayment = useCallback(async (options: RazorpayOptions): Promise<boolean> => {
     setIsLoading(true);
+    console.log('Initiating Razorpay payment for amount:', options.amount);
 
     try {
       // Ensure script is loaded
-      if (!window.Razorpay) {
+      if (typeof window === 'undefined' || !window.Razorpay) {
+        console.log('Razorpay not loaded, loading script...');
         const loaded = await loadScript();
         if (!loaded) {
+          setIsLoading(false);
           throw new Error('Failed to load payment gateway');
         }
       }
 
+      console.log('Calling razorpay-create-order edge function...');
+      
       // Create Razorpay order via edge function
       const { data, error } = await supabase.functions.invoke('razorpay-create-order', {
         body: {
@@ -87,12 +94,24 @@ export function useRazorpay(): UseRazorpayReturn {
         },
       });
 
-      if (error || !data?.success) {
-        console.error('Error creating Razorpay order:', error || data?.error);
-        throw new Error(data?.error || 'Failed to create payment order');
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        setIsLoading(false);
+        toast.error('Failed to create payment order. Please try again.');
+        return false;
+      }
+
+      if (!data?.success) {
+        console.error('Razorpay order creation failed:', data?.error);
+        setIsLoading(false);
+        toast.error(data?.error || 'Failed to create payment order');
+        return false;
       }
 
       const { order, key_id } = data;
+      console.log('Razorpay order created:', order.id, 'Key ID:', key_id?.substring(0, 10) + '...');
 
       // Open Razorpay checkout
       return new Promise((resolve) => {
@@ -108,6 +127,7 @@ export function useRazorpay(): UseRazorpayReturn {
             color: options.theme?.color || '#6366f1',
           },
           handler: async (response: any) => {
+            console.log('Payment successful, verifying...', response.razorpay_payment_id);
             try {
               // Verify payment
               const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
@@ -125,35 +145,47 @@ export function useRazorpay(): UseRazorpayReturn {
               if (verifyError || !verifyData?.success) {
                 console.error('Payment verification failed:', verifyError || verifyData?.error);
                 toast.error('Payment verification failed. Please contact support.');
+                setIsLoading(false);
                 resolve(false);
                 return;
               }
 
+              console.log('Payment verified successfully');
               toast.success('Payment successful!');
+              setIsLoading(false);
               resolve(true);
             } catch (err) {
               console.error('Error verifying payment:', err);
               toast.error('Payment verification failed');
+              setIsLoading(false);
               resolve(false);
             }
           },
           modal: {
             ondismiss: () => {
+              console.log('Razorpay modal dismissed');
               toast.error('Payment cancelled');
+              setIsLoading(false);
               resolve(false);
             },
           },
         };
 
+        console.log('Opening Razorpay checkout...');
         const razorpay = new window.Razorpay(razorpayOptions);
+        razorpay.on('payment.failed', (response: any) => {
+          console.error('Payment failed:', response.error);
+          toast.error(`Payment failed: ${response.error.description}`);
+          setIsLoading(false);
+          resolve(false);
+        });
         razorpay.open();
       });
     } catch (error: any) {
       console.error('Razorpay error:', error);
       toast.error(error.message || 'Payment failed');
-      return false;
-    } finally {
       setIsLoading(false);
+      return false;
     }
   }, [loadScript]);
 

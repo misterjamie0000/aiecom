@@ -20,14 +20,6 @@ serve(async (req) => {
   }
 
   try {
-    const RAZORPAY_KEY_ID = Deno.env.get("RAZORPAY_KEY_ID");
-    const RAZORPAY_KEY_SECRET = Deno.env.get("RAZORPAY_KEY_SECRET");
-
-    if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
-      console.error("Razorpay credentials not configured");
-      throw new Error("Payment gateway not configured");
-    }
-
     // Get auth header for user verification
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -37,6 +29,8 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -49,6 +43,36 @@ serve(async (req) => {
     }
 
     console.log("Creating Razorpay order for user:", user.id);
+
+    // Try to get keys from environment first, then from database settings
+    let RAZORPAY_KEY_ID = Deno.env.get("RAZORPAY_KEY_ID");
+    let RAZORPAY_KEY_SECRET = Deno.env.get("RAZORPAY_KEY_SECRET");
+
+    // If not in environment, try database settings
+    if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+      console.log("Razorpay keys not in environment, checking database settings...");
+      
+      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: settings, error: settingsError } = await supabaseAdmin
+        .from("site_settings")
+        .select("value")
+        .eq("key", "payment_gateway")
+        .single();
+
+      if (!settingsError && settings?.value) {
+        const paymentSettings = settings.value as any;
+        if (paymentSettings.razorpay_key_id && paymentSettings.razorpay_key_secret) {
+          RAZORPAY_KEY_ID = paymentSettings.razorpay_key_id;
+          RAZORPAY_KEY_SECRET = paymentSettings.razorpay_key_secret;
+          console.log("Using Razorpay keys from database settings");
+        }
+      }
+    }
+
+    if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+      console.error("Razorpay credentials not configured in environment or database");
+      throw new Error("Payment gateway not configured. Please configure Razorpay API keys in Admin Settings.");
+    }
 
     const body: CreateOrderRequest = await req.json();
     const { amount, currency = "INR", receipt, notes } = body;
@@ -82,7 +106,7 @@ serve(async (req) => {
     if (!razorpayResponse.ok) {
       const errorData = await razorpayResponse.text();
       console.error("Razorpay API error:", errorData);
-      throw new Error("Failed to create payment order");
+      throw new Error("Failed to create payment order. Please check your Razorpay API keys.");
     }
 
     const razorpayOrder = await razorpayResponse.json();

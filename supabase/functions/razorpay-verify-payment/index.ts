@@ -21,20 +21,13 @@ serve(async (req) => {
   }
 
   try {
-    const RAZORPAY_KEY_SECRET = Deno.env.get("RAZORPAY_KEY_SECRET");
-
-    if (!RAZORPAY_KEY_SECRET) {
-      console.error("Razorpay secret not configured");
-      throw new Error("Payment gateway not configured");
-    }
-
     // Get auth header for user verification
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       throw new Error("Authorization required");
     }
 
-    // Initialize Supabase client with service role for updating orders
+    // Initialize Supabase clients
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAnon = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -52,6 +45,34 @@ serve(async (req) => {
     }
 
     console.log("Verifying payment for user:", user.id);
+
+    // Get Razorpay secret key
+    let RAZORPAY_KEY_SECRET = Deno.env.get("RAZORPAY_KEY_SECRET");
+
+    // If not in environment, try database settings
+    if (!RAZORPAY_KEY_SECRET) {
+      console.log("Razorpay secret not in environment, checking database settings...");
+      
+      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: settings, error: settingsError } = await supabaseAdmin
+        .from("site_settings")
+        .select("value")
+        .eq("key", "payment_gateway")
+        .single();
+
+      if (!settingsError && settings?.value) {
+        const paymentSettings = settings.value as any;
+        if (paymentSettings.razorpay_key_secret) {
+          RAZORPAY_KEY_SECRET = paymentSettings.razorpay_key_secret;
+          console.log("Using Razorpay secret from database settings");
+        }
+      }
+    }
+
+    if (!RAZORPAY_KEY_SECRET) {
+      console.error("Razorpay secret not configured");
+      throw new Error("Payment gateway not configured");
+    }
 
     const body: VerifyPaymentRequest = await req.json();
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order_id } = body;
