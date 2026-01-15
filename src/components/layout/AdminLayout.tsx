@@ -27,12 +27,14 @@ import {
   ChevronRight,
   Sparkles,
   RotateCcw,
+  Warehouse,
 } from 'lucide-react';
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
   { icon: ShoppingCart, label: 'Orders', href: '/admin/orders' },
   { icon: Package, label: 'Products', href: '/admin/products' },
+  { icon: Warehouse, label: 'Inventory', href: '/admin/inventory' },
   { icon: FolderTree, label: 'Categories', href: '/admin/categories' },
   { icon: Users, label: 'Customers', href: '/admin/customers' },
   { icon: RotateCcw, label: 'Returns', href: '/admin/returns' },
