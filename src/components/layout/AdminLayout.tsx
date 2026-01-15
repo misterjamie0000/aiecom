@@ -28,6 +28,7 @@ import {
   Sparkles,
   RotateCcw,
   Warehouse,
+  FileDown,
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -44,6 +45,7 @@ const sidebarItems = [
   { icon: ImageIcon, label: 'Banners', href: '/admin/banners' },
   { icon: FileText, label: 'Pages', href: '/admin/pages' },
   { icon: BarChart3, label: 'Reports', href: '/admin/reports' },
+  { icon: FileDown, label: 'Tally Export', href: '/admin/export' },
   { icon: CreditCard, label: 'Payments', href: '/admin/payments' },
   { icon: Truck, label: 'Shipping', href: '/admin/shipping' },
   { icon: Bell, label: 'Notifications', href: '/admin/notifications' },
