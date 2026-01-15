@@ -313,6 +313,74 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_segment_members: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          customer_id: string
+          id: string
+          segment_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          customer_id: string
+          id?: string
+          segment_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          customer_id?: string
+          id?: string
+          segment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_segment_members_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "customer_segments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_segments: {
+        Row: {
+          color: string | null
+          created_at: string
+          criteria: Json | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          segment_type: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          criteria?: Json | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          segment_type?: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          criteria?: Json | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          segment_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       loyalty_points: {
         Row: {
           created_at: string
@@ -1181,8 +1249,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_customer_segments: {
+        Args: { p_customer_id: string }
+        Returns: undefined
+      }
       generate_order_number: { Args: never; Returns: string }
       generate_po_number: { Args: never; Returns: string }
+      get_customer_stats: {
+        Args: { p_customer_id: string }
+        Returns: {
+          days_since_joined: number
+          days_since_last_order: number
+          first_order_date: string
+          last_order_date: string
+          total_orders: number
+          total_spent: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -1194,6 +1277,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      refresh_all_customer_segments: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
