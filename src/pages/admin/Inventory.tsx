@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,24 +41,58 @@ import {
   RefreshCw,
   PackageX,
   ArrowUpDown,
-  Filter
+  Filter,
+  Download,
+  Upload,
+  FileSpreadsheet
 } from 'lucide-react';
 import { useInventorySummary, useStockMovements, useAdjustStock } from '@/hooks/useInventory';
+import { useExportInventoryCsv, useImportInventoryCsv, downloadImportTemplate } from '@/hooks/useInventoryCsv';
 import { format } from 'date-fns';
 
 export default function AdminInventory() {
   const { data: inventoryData, isLoading: inventoryLoading } = useInventorySummary();
   const { data: movements, isLoading: movementsLoading } = useStockMovements();
   const adjustStock = useAdjustStock();
+  const exportCsv = useExportInventoryCsv();
+  const importCsv = useImportInventoryCsv();
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [stockFilter, setStockFilter] = useState<'all' | 'out' | 'low' | 'in'>('all');
   const [adjustDialogOpen, setAdjustDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importResult, setImportResult] = useState<{
+    successCount: number;
+    errorCount: number;
+    errors: string[];
+    totalItems: number;
+  } | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [adjustmentType, setAdjustmentType] = useState<'add' | 'remove'>('add');
   const [adjustmentQuantity, setAdjustmentQuantity] = useState('');
   const [adjustmentReason, setAdjustmentReason] = useState('');
   const [movementType, setMovementType] = useState<'adjustment' | 'restock' | 'damage' | 'transfer'>('adjustment');
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setImportResult(null);
+    
+    importCsv.mutate(file, {
+      onSuccess: (result) => {
+        setImportResult(result);
+        setImportDialogOpen(true);
+      },
+    });
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const stats = inventoryData?.stats;
   const products = inventoryData?.products || [];
@@ -151,9 +185,44 @@ export default function AdminInventory() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Inventory Management</h1>
-        <p className="text-muted-foreground">Track and manage your product stock levels</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Inventory Management</h1>
+          <p className="text-muted-foreground">Track and manage your product stock levels</p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => exportCsv.mutate()}
+            disabled={exportCsv.isPending}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            {exportCsv.isPending ? 'Exporting...' : 'Export CSV'}
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+          <Button
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importCsv.isPending}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            {importCsv.isPending ? 'Importing...' : 'Import CSV'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={downloadImportTemplate}
+            title="Download import template"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -447,6 +516,55 @@ export default function AdminInventory() {
               disabled={!adjustmentQuantity || adjustStock.isPending}
             >
               {adjustStock.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import Result Dialog */}
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5" />
+              Import Complete
+            </DialogTitle>
+            <DialogDescription>
+              CSV import has been processed
+            </DialogDescription>
+          </DialogHeader>
+          
+          {importResult && (
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">{importResult.successCount}</div>
+                  <div className="text-sm text-green-700">Successful</div>
+                </div>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-red-600">{importResult.errorCount}</div>
+                  <div className="text-sm text-red-700">Errors</div>
+                </div>
+              </div>
+              
+              {importResult.errors.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Error Details:</Label>
+                  <div className="max-h-40 overflow-y-auto bg-muted rounded-md p-3 text-sm space-y-1">
+                    {importResult.errors.map((error, index) => (
+                      <div key={index} className="text-destructive">
+                        {error}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button onClick={() => setImportDialogOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
