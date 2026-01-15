@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, CreditCard, Truck, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, CreditCard, Truck, CheckCircle2, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -52,7 +52,8 @@ export default function Checkout() {
     );
   }
 
-  if (!cartItems || cartItems.length === 0) {
+  // Only show empty cart if not in animation or confirmation step
+  if ((!cartItems || cartItems.length === 0) && step !== 'animation' && step !== 'confirmation') {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <p>Your cart is empty.</p>
@@ -150,57 +151,114 @@ export default function Checkout() {
 
   if (step === 'confirmation') {
     return (
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="container mx-auto px-4 py-16 max-w-md text-center"
-      >
-        <motion.div
-          initial={{ scale: 0, rotate: -180 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', duration: 0.8 }}
-          className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-500/30"
-        >
-          <CheckCircle2 className="w-12 h-12 text-white" />
-        </motion.div>
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-2xl font-bold mb-2"
-        >
-          Order Confirmed!
-        </motion.h1>
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-muted-foreground mb-4"
-        >
-          Thank you for your order. Your order number is:
-        </motion.p>
-        <motion.p 
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, type: 'spring' }}
-          className="text-xl font-mono font-bold text-primary mb-8 bg-primary/10 py-3 px-6 rounded-lg inline-block"
-        >
-          {orderId}
-        </motion.p>
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="flex flex-col gap-3"
-        >
-          <Button asChild size="lg">
-            <Link to="/orders">View Orders</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/products">Continue Shopping</Link>
-          </Button>
-        </motion.div>
-      </motion.div>
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+        <div className="container mx-auto px-4 py-12 max-w-lg">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card rounded-2xl shadow-xl p-8 text-center border"
+          >
+            {/* Success Icon */}
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', duration: 0.8 }}
+              className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-500/30"
+            >
+              <CheckCircle2 className="w-12 h-12 text-white" />
+            </motion.div>
+
+            {/* Title */}
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-3xl font-bold mb-2 text-foreground"
+            >
+              Order Confirmed! 🎉
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-muted-foreground mb-6"
+            >
+              Thank you for shopping with us!
+            </motion.p>
+
+            {/* Order Number Card */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 }}
+              className="bg-muted/50 rounded-xl p-6 mb-8"
+            >
+              <p className="text-sm text-muted-foreground mb-2">Your Order Number</p>
+              <p className="text-2xl font-mono font-bold text-primary">
+                {orderId}
+              </p>
+              <p className="text-xs text-muted-foreground mt-3">
+                We've sent a confirmation email with order details
+              </p>
+            </motion.div>
+
+            {/* Info Cards */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="grid grid-cols-2 gap-4 mb-8"
+            >
+              <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4">
+                <Truck className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground">Expected Delivery</p>
+                <p className="text-sm font-semibold">3-5 Business Days</p>
+              </div>
+              <div className="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-4">
+                <CreditCard className="w-6 h-6 text-purple-500 mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground">Payment</p>
+                <p className="text-sm font-semibold">Cash on Delivery</p>
+              </div>
+            </motion.div>
+
+            {/* Action Buttons */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="flex flex-col gap-3"
+            >
+              <Button asChild size="lg" className="w-full">
+                <Link to="/orders">
+                  <Package className="w-4 h-4 mr-2" />
+                  Track Your Order
+                </Link>
+              </Button>
+              <Button variant="outline" asChild size="lg" className="w-full">
+                <Link to="/">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Home
+                </Link>
+              </Button>
+              <Button variant="ghost" asChild className="w-full">
+                <Link to="/products">Continue Shopping</Link>
+              </Button>
+            </motion.div>
+          </motion.div>
+
+          {/* Help Text */}
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="text-center text-sm text-muted-foreground mt-6"
+          >
+            Need help? Contact us at support@store.com
+          </motion.p>
+        </div>
+      </div>
     );
   }
 
