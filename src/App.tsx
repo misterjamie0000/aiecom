@@ -54,6 +54,7 @@ import AdminExportCenter from "./pages/admin/ExportCenter";
 import AdminInventory from "./pages/admin/Inventory";
 import AdminSuppliers from "./pages/admin/Suppliers";
 import AdminPurchaseOrders from "./pages/admin/PurchaseOrders";
+import AdminSegments from "./pages/admin/Segments";
 
 const queryClient = new QueryClient();
 
@@ -98,6 +99,7 @@ const App = () => (
               <Route path="products" element={<AdminProducts />} />
               <Route path="categories" element={<AdminCategories />} />
               <Route path="customers" element={<AdminCustomers />} />
+              <Route path="segments" element={<AdminSegments />} />
               <Route path="returns" element={<AdminReturns />} />
               <Route path="coupons" element={<AdminCoupons />} />
               <Route path="loyalty" element={<AdminLoyalty />} />
