@@ -80,6 +80,9 @@ import {
 import { useCustomerSegments } from '@/hooks/useCustomerSegments';
 import CampaignAnalytics from '@/components/admin/CampaignAnalytics';
 import WhatsAppSettings from '@/components/admin/WhatsAppSettings';
+import WhatsAppCampaigns from '@/components/admin/WhatsAppCampaigns';
+import WhatsAppTemplates from '@/components/admin/WhatsAppTemplates';
+import { useSendWhatsAppCartReminder } from '@/hooks/useWhatsAppMarketing';
 
 export default function Marketing() {
   const [activeTab, setActiveTab] = useState('campaigns');
@@ -100,6 +103,7 @@ export default function Marketing() {
   const deleteCampaign = useDeleteCampaign();
   const sendCampaign = useSendCampaign();
   const sendCartReminder = useSendCartReminder();
+  const sendWhatsAppCartReminder = useSendWhatsAppCartReminder();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -402,21 +406,29 @@ export default function Marketing() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="campaigns" className="gap-2">
             <Mail className="w-4 h-4" />
-            Campaigns ({campaigns?.length || 0})
+            Email Campaigns
+          </TabsTrigger>
+          <TabsTrigger value="whatsapp-campaigns" className="gap-2">
+            <MessageCircle className="w-4 h-4" />
+            WhatsApp Campaigns
+          </TabsTrigger>
+          <TabsTrigger value="whatsapp-templates" className="gap-2">
+            <FileText className="w-4 h-4" />
+            WhatsApp Templates
           </TabsTrigger>
           <TabsTrigger value="abandoned" className="gap-2">
             <ShoppingCart className="w-4 h-4" />
-            Abandoned Carts ({abandonedCarts?.length || 0})
+            Abandoned Carts
           </TabsTrigger>
           <TabsTrigger value="analytics" className="gap-2">
             <BarChart3 className="w-4 h-4" />
             Analytics
           </TabsTrigger>
           <TabsTrigger value="settings" className="gap-2">
-            <MessageCircle className="w-4 h-4" />
+            <Settings className="w-4 h-4" />
             WhatsApp Settings
           </TabsTrigger>
         </TabsList>
@@ -564,18 +576,35 @@ export default function Marketing() {
                           {cart.customer?.email || 'No email'}
                         </CardDescription>
                       </div>
-                      <Button
-                        size="sm"
-                        onClick={() => sendCartReminder.mutate(cart.id)}
-                        disabled={sendCartReminder.isPending}
-                      >
-                        {sendCartReminder.isPending ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                          <Send className="w-4 h-4 mr-2" />
-                        )}
-                        Send Reminder
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => sendCartReminder.mutate(cart.id)}
+                          disabled={sendCartReminder.isPending}
+                          className="gap-1"
+                        >
+                          {sendCartReminder.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Mail className="w-4 h-4" />
+                          )}
+                          Email
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => sendWhatsAppCartReminder.mutate(cart.id)}
+                          disabled={sendWhatsAppCartReminder.isPending}
+                          className="gap-1 bg-green-600 hover:bg-green-700"
+                        >
+                          {sendWhatsAppCartReminder.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <MessageCircle className="w-4 h-4" />
+                          )}
+                          WhatsApp
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap items-center gap-4 text-sm">
@@ -628,6 +657,16 @@ export default function Marketing() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        {/* WhatsApp Campaigns Tab */}
+        <TabsContent value="whatsapp-campaigns" className="space-y-4">
+          <WhatsAppCampaigns />
+        </TabsContent>
+
+        {/* WhatsApp Templates Tab */}
+        <TabsContent value="whatsapp-templates" className="space-y-4">
+          <WhatsAppTemplates />
         </TabsContent>
 
         {/* Analytics Tab */}
