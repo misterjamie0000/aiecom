@@ -1402,6 +1402,188 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_campaign_recipients: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          delivered_at: string | null
+          error_message: string | null
+          failed_at: string | null
+          id: string
+          message_id: string | null
+          phone_number: string
+          read_at: string | null
+          sent_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          message_id?: string | null
+          phone_number: string
+          read_at?: string | null
+          sent_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          message_id?: string | null
+          phone_number?: string
+          read_at?: string | null
+          sent_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_campaigns: {
+        Row: {
+          campaign_type: string
+          created_at: string
+          created_by: string | null
+          id: string
+          message_content: string
+          name: string
+          scheduled_at: string | null
+          sent_at: string | null
+          status: string
+          target_segment_id: string | null
+          template_id: string | null
+          total_delivered: number | null
+          total_failed: number | null
+          total_read: number | null
+          total_recipients: number | null
+          total_sent: number | null
+          updated_at: string
+        }
+        Insert: {
+          campaign_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message_content: string
+          name: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          target_segment_id?: string | null
+          template_id?: string | null
+          total_delivered?: number | null
+          total_failed?: number | null
+          total_read?: number | null
+          total_recipients?: number | null
+          total_sent?: number | null
+          updated_at?: string
+        }
+        Update: {
+          campaign_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message_content?: string
+          name?: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          target_segment_id?: string | null
+          template_id?: string | null
+          total_delivered?: number | null
+          total_failed?: number | null
+          total_read?: number | null
+          total_recipients?: number | null
+          total_sent?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_campaigns_target_segment_id_fkey"
+            columns: ["target_segment_id"]
+            isOneToOne: false
+            referencedRelation: "customer_segments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_templates: {
+        Row: {
+          button_text: string | null
+          button_url: string | null
+          content: string
+          created_at: string
+          footer_content: string | null
+          header_content: string | null
+          header_type: string | null
+          id: string
+          is_active: boolean | null
+          is_approved: boolean | null
+          language: string
+          name: string
+          template_name: string
+          template_type: string
+          updated_at: string
+        }
+        Insert: {
+          button_text?: string | null
+          button_url?: string | null
+          content: string
+          created_at?: string
+          footer_content?: string | null
+          header_content?: string | null
+          header_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_approved?: boolean | null
+          language?: string
+          name: string
+          template_name: string
+          template_type?: string
+          updated_at?: string
+        }
+        Update: {
+          button_text?: string | null
+          button_url?: string | null
+          content?: string
+          created_at?: string
+          footer_content?: string | null
+          header_content?: string | null
+          header_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_approved?: boolean | null
+          language?: string
+          name?: string
+          template_name?: string
+          template_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       wishlist: {
         Row: {
           created_at: string
