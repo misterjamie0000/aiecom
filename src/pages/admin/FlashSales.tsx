@@ -133,32 +133,6 @@ export default function AdminFlashSales() {
 
   return (
     <div className="space-y-6">
-      {/* Usage Notes / उपयोग नोट्स */}
-      <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border-yellow-200 dark:border-yellow-800">
-        <CardContent className="pt-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">🇬🇧 Why Flash Sales?</h3>
-              <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
-                <li>• <strong>Urgency:</strong> Time-limited offers create FOMO and drive immediate purchases</li>
-                <li>• <strong>Clear Stock:</strong> Quickly sell excess inventory with deep discounts</li>
-                <li>• <strong>Boost Traffic:</strong> Flash sales attract new customers to your store</li>
-                <li>• <strong>Increase Revenue:</strong> Higher conversion rates during sale periods</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">🇮🇳 Flash Sales क्यों?</h3>
-              <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
-                <li>• <strong>तात्कालिकता:</strong> सीमित समय ऑफर तुरंत खरीदारी के लिए प्रेरित करते हैं</li>
-                <li>• <strong>स्टॉक क्लियर:</strong> भारी छूट के साथ अतिरिक्त इन्वेंट्री जल्दी बेचें</li>
-                <li>• <strong>ट्रैफिक बढ़ाएं:</strong> Flash sales नए ग्राहकों को आकर्षित करती हैं</li>
-                <li>• <strong>राजस्व बढ़ाएं:</strong> सेल अवधि में उच्च रूपांतरण दर</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">

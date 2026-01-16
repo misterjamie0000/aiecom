@@ -146,32 +146,6 @@ export default function AdminBxgyOffers() {
 
   return (
     <div className="space-y-6">
-      {/* Usage Notes / उपयोग नोट्स */}
-      <Card className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-orange-200 dark:border-orange-800">
-        <CardContent className="pt-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold text-orange-800 dark:text-orange-200 mb-2">🇬🇧 Why BXGY Offers?</h3>
-              <ul className="text-sm text-orange-700 dark:text-orange-300 space-y-1">
-                <li>• <strong>Buy More:</strong> "Buy 2 Get 1 Free" encourages larger purchases</li>
-                <li>• <strong>Clear Inventory:</strong> Give away slow-moving stock with popular items</li>
-                <li>• <strong>Customer Loyalty:</strong> Rewarding deals make customers return</li>
-                <li>• <strong>Flexible Promos:</strong> Mix products/categories for creative offers</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-orange-800 dark:text-orange-200 mb-2">🇮🇳 BXGY ऑफर्स क्यों?</h3>
-              <ul className="text-sm text-orange-700 dark:text-orange-300 space-y-1">
-                <li>• <strong>ज्यादा खरीदें:</strong> "2 खरीदें 1 मुफ्त" बड़ी खरीदारी को प्रेरित करता है</li>
-                <li>• <strong>इन्वेंट्री क्लियर:</strong> लोकप्रिय आइटम के साथ धीमी बिक्री स्टॉक दें</li>
-                <li>• <strong>ग्राहक वफादारी:</strong> आकर्षक डील ग्राहकों को वापस लाती हैं</li>
-                <li>• <strong>लचीले प्रोमो:</strong> क्रिएटिव ऑफर के लिए प्रोडक्ट/कैटेगरी मिक्स करें</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">

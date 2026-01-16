@@ -127,32 +127,6 @@ export default function AdminBundles() {
 
   return (
     <div className="space-y-6">
-      {/* Usage Notes / उपयोग नोट्स */}
-      <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800">
-        <CardContent className="pt-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">🇬🇧 Why Product Bundles?</h3>
-              <ul className="text-sm text-purple-700 dark:text-purple-300 space-y-1">
-                <li>• <strong>Increase AOV:</strong> Customers buy more products in one order</li>
-                <li>• <strong>Value Perception:</strong> Bundles seem like better deals than individual items</li>
-                <li>• <strong>Cross-Sell:</strong> Introduce customers to products they might not discover</li>
-                <li>• <strong>Simplify Choice:</strong> Pre-made kits help undecided customers</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">🇮🇳 Product Bundles क्यों?</h3>
-              <ul className="text-sm text-purple-700 dark:text-purple-300 space-y-1">
-                <li>• <strong>AOV बढ़ाएं:</strong> ग्राहक एक ऑर्डर में ज्यादा प्रोडक्ट्स खरीदते हैं</li>
-                <li>• <strong>मूल्य धारणा:</strong> बंडल अलग-अलग आइटम से बेहतर डील लगते हैं</li>
-                <li>• <strong>क्रॉस-सेल:</strong> ग्राहकों को नए प्रोडक्ट्स से परिचित कराएं</li>
-                <li>• <strong>चुनाव सरल:</strong> तैयार किट अनिर्णीत ग्राहकों की मदद करती हैं</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
