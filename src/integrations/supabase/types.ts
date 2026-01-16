@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      abandoned_carts: {
+        Row: {
+          created_at: string
+          id: string
+          last_activity_at: string
+          recovered: boolean | null
+          recovered_at: string | null
+          reminder_count: number | null
+          reminder_sent_at: string | null
+          total_items: number
+          total_value: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_activity_at: string
+          recovered?: boolean | null
+          recovered_at?: string | null
+          reminder_count?: number | null
+          reminder_sent_at?: string | null
+          total_items?: number
+          total_value?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_activity_at?: string
+          recovered?: boolean | null
+          recovered_at?: string | null
+          reminder_count?: number | null
+          reminder_sent_at?: string | null
+          total_items?: number
+          total_value?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       addresses: {
         Row: {
           address_line1: string
@@ -115,6 +157,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      campaign_recipients: {
+        Row: {
+          campaign_id: string
+          clicked_at: string | null
+          created_at: string
+          email: string
+          error_message: string | null
+          id: string
+          opened_at: string | null
+          sent_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          clicked_at?: string | null
+          created_at?: string
+          email: string
+          error_message?: string | null
+          id?: string
+          opened_at?: string | null
+          sent_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          clicked_at?: string | null
+          created_at?: string
+          email?: string
+          error_message?: string | null
+          id?: string
+          opened_at?: string | null
+          sent_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cart_items: {
         Row: {
@@ -377,6 +466,104 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           segment_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_campaigns: {
+        Row: {
+          campaign_type: string
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          scheduled_at: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          target_segment_id: string | null
+          total_clicked: number | null
+          total_opened: number | null
+          total_recipients: number | null
+          total_sent: number | null
+          updated_at: string
+        }
+        Insert: {
+          campaign_type?: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          target_segment_id?: string | null
+          total_clicked?: number | null
+          total_opened?: number | null
+          total_recipients?: number | null
+          total_sent?: number | null
+          updated_at?: string
+        }
+        Update: {
+          campaign_type?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          target_segment_id?: string | null
+          total_clicked?: number | null
+          total_opened?: number | null
+          total_recipients?: number | null
+          total_sent?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaigns_target_segment_id_fkey"
+            columns: ["target_segment_id"]
+            isOneToOne: false
+            referencedRelation: "customer_segments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_default: boolean | null
+          name: string
+          subject: string
+          template_type: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          name: string
+          subject: string
+          template_type?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          subject?: string
+          template_type?: string
           updated_at?: string
         }
         Relationships: []
@@ -1278,6 +1465,7 @@ export type Database = {
         Returns: boolean
       }
       refresh_all_customer_segments: { Args: never; Returns: undefined }
+      update_abandoned_carts: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
