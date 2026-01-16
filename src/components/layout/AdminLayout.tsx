@@ -32,6 +32,7 @@ import {
   FileDown,
   Building2,
   ClipboardList,
+  Megaphone,
   UserCog,
 } from 'lucide-react';
 
@@ -46,6 +47,7 @@ const allSidebarItems = [
   { icon: Users, label: 'Customers', href: '/admin/customers', feature: null },
   { icon: UserCog, label: 'Segments', href: '/admin/segments', feature: null },
   { icon: RotateCcw, label: 'Returns', href: '/admin/returns', feature: null },
+  { icon: Megaphone, label: 'Marketing', href: '/admin/marketing', feature: null },
   { icon: Tag, label: 'Coupons', href: '/admin/coupons', feature: null },
   { icon: Gift, label: 'Loyalty', href: '/admin/loyalty', feature: null },
   { icon: MessageSquare, label: 'Reviews', href: '/admin/reviews', feature: null },
