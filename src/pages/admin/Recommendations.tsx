@@ -75,6 +75,32 @@ export default function AdminRecommendations() {
 
   return (
     <div className="space-y-6">
+      {/* Usage Notes / उपयोग नोट्स */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+        <CardContent className="pt-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">🇬🇧 Why Product Recommendations?</h3>
+              <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                <li>• <strong>Personalization:</strong> Show relevant products based on user behavior</li>
+                <li>• <strong>Increase Sales:</strong> "Frequently bought together" drives 10-30% more revenue</li>
+                <li>• <strong>Discovery:</strong> Help customers find products they didn't know they needed</li>
+                <li>• <strong>Reduce Bounce:</strong> Keep users engaged with related suggestions</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">🇮🇳 Product Recommendations क्यों?</h3>
+              <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                <li>• <strong>पर्सनलाइजेशन:</strong> यूजर व्यवहार के आधार पर प्रासंगिक प्रोडक्ट दिखाएं</li>
+                <li>• <strong>बिक्री बढ़ाएं:</strong> "अक्सर साथ खरीदे" 10-30% अधिक राजस्व लाता है</li>
+                <li>• <strong>खोज:</strong> ग्राहकों को नए प्रोडक्ट खोजने में मदद करें</li>
+                <li>• <strong>बाउंस कम:</strong> संबंधित सुझावों से यूजर्स को जोड़े रखें</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
