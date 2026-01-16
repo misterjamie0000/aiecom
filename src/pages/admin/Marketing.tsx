@@ -20,12 +20,16 @@ import {
   Edit,
   IndianRupee,
   BarChart3,
+  Info,
+  Languages,
+  HelpCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Dialog,
   DialogContent,
@@ -79,6 +83,8 @@ export default function Marketing() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<EmailCampaign | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [showFeatureInfo, setShowFeatureInfo] = useState(false);
+  const [featureInfoLang, setFeatureInfoLang] = useState<'hi' | 'en'>('hi');
 
   const { data: campaigns, isLoading: campaignsLoading } = useEmailCampaigns();
   const { data: abandonedCarts, isLoading: cartsLoading } = useAbandonedCarts();
@@ -193,11 +199,94 @@ export default function Marketing() {
             Manage email campaigns and recover abandoned carts
           </p>
         </div>
-        <Button onClick={handleOpenCreate} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Create Campaign
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowFeatureInfo(!showFeatureInfo)}
+            className="gap-2"
+          >
+            <HelpCircle className="w-4 h-4" />
+            Use of this feature
+          </Button>
+          <Button onClick={handleOpenCreate} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Create Campaign
+          </Button>
+        </div>
       </div>
+
+      {/* Feature Info */}
+      {showFeatureInfo && (
+        <Alert className="bg-blue-50 border-blue-200 text-blue-800">
+          <Info className="h-4 w-4" />
+          <AlertDescription className="space-y-2">
+            <div className="flex items-center justify-between mb-2">
+              <p className="font-medium">
+                {featureInfoLang === 'hi' ? 'Marketing Feature का उपयोग क्यों करें?' : 'Why use the Marketing Feature?'}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFeatureInfoLang(featureInfoLang === 'hi' ? 'en' : 'hi')}
+                className="gap-1 h-7 text-xs bg-white"
+              >
+                <Languages className="w-3 h-3" />
+                {featureInfoLang === 'hi' ? 'English' : 'हिंदी'}
+              </Button>
+            </div>
+
+            {featureInfoLang === 'hi' ? (
+              <>
+                <p className="font-medium">यह Feature क्या है?</p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li><strong>Email Campaigns:</strong> अपने customers को promotional emails भेजें - नए products, offers, discounts के बारे में बताएं</li>
+                  <li><strong>Abandoned Cart Recovery:</strong> जो customers cart में items छोड़कर चले गए, उन्हें reminder email भेजें ताकि वो purchase complete करें</li>
+                  <li><strong>Customer Segmentation:</strong> VIP, New, Inactive customers को अलग-अलग campaigns भेजें</li>
+                  <li><strong>Analytics:</strong> देखें कितने emails open हुए, कितने पर click हुआ - campaign performance track करें</li>
+                </ul>
+                <p className="font-medium mt-3">कब उपयोग करें?</p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>नया product launch करते समय customers को inform करने के लिए</li>
+                  <li>Festival या special offer के दौरान promotional emails भेजने के लिए</li>
+                  <li>Abandoned carts recover करके lost sales वापस पाने के लिए</li>
+                  <li>Inactive customers को re-engage करने के लिए</li>
+                </ul>
+                <p className="font-medium mt-3">फायदे:</p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>Sales बढ़ाएं targeted email campaigns से</li>
+                  <li>Lost revenue recover करें abandoned cart reminders से</li>
+                  <li>Customer engagement improve करें</li>
+                  <li>ROI track करें analytics से</li>
+                </ul>
+              </>
+            ) : (
+              <>
+                <p className="font-medium">What is this Feature?</p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li><strong>Email Campaigns:</strong> Send promotional emails to your customers - inform them about new products, offers, and discounts</li>
+                  <li><strong>Abandoned Cart Recovery:</strong> Send reminder emails to customers who left items in their cart to help them complete their purchase</li>
+                  <li><strong>Customer Segmentation:</strong> Send different campaigns to VIP, New, and Inactive customers</li>
+                  <li><strong>Analytics:</strong> Track how many emails were opened, clicked - monitor campaign performance</li>
+                </ul>
+                <p className="font-medium mt-3">When to use?</p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>To inform customers when launching a new product</li>
+                  <li>To send promotional emails during festivals or special offers</li>
+                  <li>To recover lost sales by reminding about abandoned carts</li>
+                  <li>To re-engage inactive customers</li>
+                </ul>
+                <p className="font-medium mt-3">Benefits:</p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>Increase sales with targeted email campaigns</li>
+                  <li>Recover lost revenue with abandoned cart reminders</li>
+                  <li>Improve customer engagement</li>
+                  <li>Track ROI with analytics</li>
+                </ul>
+              </>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
