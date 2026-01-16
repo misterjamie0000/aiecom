@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Sparkles, RefreshCw, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { FeatureGuide } from '@/components/admin/FeatureGuide';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -84,6 +85,7 @@ export default function AdminRecommendations() {
           <p className="text-muted-foreground">Manage product recommendations for better conversions</p>
         </div>
         <div className="flex gap-2">
+          <FeatureGuide feature="recommendations" />
           <Button
             variant="outline"
             onClick={() => generateRecommendations.mutate()}

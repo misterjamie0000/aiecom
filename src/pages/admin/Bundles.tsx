@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Edit, Trash2, Package, Gift, Percent } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { FeatureGuide } from '@/components/admin/FeatureGuide';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -135,99 +136,102 @@ export default function AdminBundles() {
           </h1>
           <p className="text-muted-foreground">Create combo offers with special pricing</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Create Bundle</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>{editingBundle ? 'Edit Bundle' : 'Create Bundle'}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-              <div className="space-y-2">
-                <Label>Bundle Name</Label>
-                <Input
-                  placeholder="e.g., Skincare Starter Kit"
-                  value={formData.name}
-                  onChange={(e) => {
-                    setFormData({ 
-                      ...formData, 
-                      name: e.target.value,
-                      slug: generateSlug(e.target.value)
-                    });
-                  }}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Slug</Label>
-                <Input
-                  placeholder="skincare-starter-kit"
-                  value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                  placeholder="Describe the bundle..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Bundle Price (₹)</Label>
-                <Input
-                  type="number"
-                  placeholder="999"
-                  value={formData.bundle_price}
-                  onChange={(e) => setFormData({ ...formData, bundle_price: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Image URL</Label>
-                <Input
-                  placeholder="https://..."
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+        <div className="flex gap-2">
+          <FeatureGuide feature="bundles" />
+          <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button><Plus className="mr-2 h-4 w-4" /> Create Bundle</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>{editingBundle ? 'Edit Bundle' : 'Create Bundle'}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                 <div className="space-y-2">
-                  <Label>Starts At (Optional)</Label>
+                  <Label>Bundle Name</Label>
                   <Input
-                    type="datetime-local"
-                    value={formData.starts_at}
-                    onChange={(e) => setFormData({ ...formData, starts_at: e.target.value })}
+                    placeholder="e.g., Skincare Starter Kit"
+                    value={formData.name}
+                    onChange={(e) => {
+                      setFormData({ 
+                        ...formData, 
+                        name: e.target.value,
+                        slug: generateSlug(e.target.value)
+                      });
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Ends At (Optional)</Label>
+                  <Label>Slug</Label>
                   <Input
-                    type="datetime-local"
-                    value={formData.ends_at}
-                    onChange={(e) => setFormData({ ...formData, ends_at: e.target.value })}
+                    placeholder="skincare-starter-kit"
+                    value={formData.slug}
+                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Textarea
+                    placeholder="Describe the bundle..."
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Bundle Price (₹)</Label>
+                  <Input
+                    type="number"
+                    placeholder="999"
+                    value={formData.bundle_price}
+                    onChange={(e) => setFormData({ ...formData, bundle_price: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Image URL</Label>
+                  <Input
+                    placeholder="https://..."
+                    value={formData.image_url}
+                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Starts At (Optional)</Label>
+                    <Input
+                      type="datetime-local"
+                      value={formData.starts_at}
+                      onChange={(e) => setFormData({ ...formData, starts_at: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Ends At (Optional)</Label>
+                    <Input
+                      type="datetime-local"
+                      value={formData.ends_at}
+                      onChange={(e) => setFormData({ ...formData, ends_at: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Max Purchases (Optional)</Label>
+                  <Input
+                    type="number"
+                    placeholder="Leave empty for unlimited"
+                    value={formData.max_purchases}
+                    onChange={(e) => setFormData({ ...formData, max_purchases: e.target.value })}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={formData.is_active} onCheckedChange={(c) => setFormData({ ...formData, is_active: c })} />
+                  <Label>Active</Label>
+                </div>
+                <Button className="w-full" onClick={handleSubmit} disabled={createBundle.isPending || updateBundle.isPending}>
+                  {editingBundle ? 'Update Bundle' : 'Create Bundle'}
+                </Button>
               </div>
-              <div className="space-y-2">
-                <Label>Max Purchases (Optional)</Label>
-                <Input
-                  type="number"
-                  placeholder="Leave empty for unlimited"
-                  value={formData.max_purchases}
-                  onChange={(e) => setFormData({ ...formData, max_purchases: e.target.value })}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch checked={formData.is_active} onCheckedChange={(c) => setFormData({ ...formData, is_active: c })} />
-                <Label>Active</Label>
-              </div>
-              <Button className="w-full" onClick={handleSubmit} disabled={createBundle.isPending || updateBundle.isPending}>
-                {editingBundle ? 'Update Bundle' : 'Create Bundle'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}
