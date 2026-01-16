@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Edit, Trash2, Tag, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { FeatureGuide } from '@/components/admin/FeatureGuide';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -154,201 +155,204 @@ export default function AdminBxgyOffers() {
           </h1>
           <p className="text-muted-foreground">Create promotional BXGY deals</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Create Offer</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingOffer ? 'Edit BXGY Offer' : 'Create BXGY Offer'}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label>Offer Name</Label>
-                <Input
-                  placeholder="e.g., Buy 2 Get 1 Free"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                  placeholder="Describe the offer..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </div>
+        <div className="flex gap-2">
+          <FeatureGuide feature="bxgy" />
+          <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button><Plus className="mr-2 h-4 w-4" /> Create Offer</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>{editingOffer ? 'Edit BXGY Offer' : 'Create BXGY Offer'}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Offer Name</Label>
+                  <Input
+                    placeholder="e.g., Buy 2 Get 1 Free"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Textarea
+                    placeholder="Describe the offer..."
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  />
+                </div>
 
-              {/* Buy Condition */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Buy Condition</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label>Type</Label>
-                      <Select value={formData.buy_type} onValueChange={(v) => setFormData({ ...formData, buy_type: v })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="product">Specific Product</SelectItem>
-                          <SelectItem value="category">Category</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{formData.buy_type === 'product' ? 'Product' : 'Category'}</Label>
-                      {formData.buy_type === 'product' ? (
-                        <Select value={formData.buy_product_id} onValueChange={(v) => setFormData({ ...formData, buy_product_id: v })}>
-                          <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
-                          <SelectContent>
-                            {products?.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Select value={formData.buy_category_id} onValueChange={(v) => setFormData({ ...formData, buy_category_id: v })}>
-                          <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
-                          <SelectContent>
-                            {categories?.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Quantity</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={formData.buy_quantity}
-                        onChange={(e) => setFormData({ ...formData, buy_quantity: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Get Condition */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Get Condition</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label>Type</Label>
-                      <Select value={formData.get_type} onValueChange={(v) => setFormData({ ...formData, get_type: v })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="product">Specific Product</SelectItem>
-                          <SelectItem value="category">Category</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{formData.get_type === 'product' ? 'Product' : 'Category'}</Label>
-                      {formData.get_type === 'product' ? (
-                        <Select value={formData.get_product_id} onValueChange={(v) => setFormData({ ...formData, get_product_id: v })}>
-                          <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
-                          <SelectContent>
-                            {products?.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Select value={formData.get_category_id} onValueChange={(v) => setFormData({ ...formData, get_category_id: v })}>
-                          <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
-                          <SelectContent>
-                            {categories?.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Quantity</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={formData.get_quantity}
-                        onChange={(e) => setFormData({ ...formData, get_quantity: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Discount Type</Label>
-                      <Select value={formData.get_discount_type} onValueChange={(v) => setFormData({ ...formData, get_discount_type: v })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="free">Free (100% off)</SelectItem>
-                          <SelectItem value="percentage">Percentage</SelectItem>
-                          <SelectItem value="fixed">Fixed Amount</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {formData.get_discount_type !== 'free' && (
+                {/* Buy Condition */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Buy Condition</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label>Discount Value</Label>
+                        <Label>Type</Label>
+                        <Select value={formData.buy_type} onValueChange={(v) => setFormData({ ...formData, buy_type: v })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="product">Specific Product</SelectItem>
+                            <SelectItem value="category">Category</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{formData.buy_type === 'product' ? 'Product' : 'Category'}</Label>
+                        {formData.buy_type === 'product' ? (
+                          <Select value={formData.buy_product_id} onValueChange={(v) => setFormData({ ...formData, buy_product_id: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                            <SelectContent>
+                              {products?.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Select value={formData.buy_category_id} onValueChange={(v) => setFormData({ ...formData, buy_category_id: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                            <SelectContent>
+                              {categories?.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Quantity</Label>
                         <Input
                           type="number"
-                          placeholder={formData.get_discount_type === 'percentage' ? '50' : '200'}
-                          value={formData.get_discount_value}
-                          onChange={(e) => setFormData({ ...formData, get_discount_value: e.target.value })}
+                          min="1"
+                          value={formData.buy_quantity}
+                          onChange={(e) => setFormData({ ...formData, buy_quantity: e.target.value })}
                         />
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Validity */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Starts At (Optional)</Label>
-                  <Input
-                    type="datetime-local"
-                    value={formData.starts_at}
-                    onChange={(e) => setFormData({ ...formData, starts_at: e.target.value })}
-                  />
+                {/* Get Condition */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Get Condition</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>Type</Label>
+                        <Select value={formData.get_type} onValueChange={(v) => setFormData({ ...formData, get_type: v })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="product">Specific Product</SelectItem>
+                            <SelectItem value="category">Category</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{formData.get_type === 'product' ? 'Product' : 'Category'}</Label>
+                        {formData.get_type === 'product' ? (
+                          <Select value={formData.get_product_id} onValueChange={(v) => setFormData({ ...formData, get_product_id: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                            <SelectContent>
+                              {products?.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Select value={formData.get_category_id} onValueChange={(v) => setFormData({ ...formData, get_category_id: v })}>
+                            <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                            <SelectContent>
+                              {categories?.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Quantity</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={formData.get_quantity}
+                          onChange={(e) => setFormData({ ...formData, get_quantity: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Discount Type</Label>
+                        <Select value={formData.get_discount_type} onValueChange={(v) => setFormData({ ...formData, get_discount_type: v })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="free">Free (100% off)</SelectItem>
+                            <SelectItem value="percentage">Percentage</SelectItem>
+                            <SelectItem value="fixed">Fixed Amount</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {formData.get_discount_type !== 'free' && (
+                        <div className="space-y-2">
+                          <Label>Discount Value</Label>
+                          <Input
+                            type="number"
+                            placeholder={formData.get_discount_type === 'percentage' ? '50' : '200'}
+                            value={formData.get_discount_value}
+                            onChange={(e) => setFormData({ ...formData, get_discount_value: e.target.value })}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Validity */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Starts At (Optional)</Label>
+                    <Input
+                      type="datetime-local"
+                      value={formData.starts_at}
+                      onChange={(e) => setFormData({ ...formData, starts_at: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Ends At (Optional)</Label>
+                    <Input
+                      type="datetime-local"
+                      value={formData.ends_at}
+                      onChange={(e) => setFormData({ ...formData, ends_at: e.target.value })}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Ends At (Optional)</Label>
-                  <Input
-                    type="datetime-local"
-                    value={formData.ends_at}
-                    onChange={(e) => setFormData({ ...formData, ends_at: e.target.value })}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Max Uses (Optional)</Label>
+                    <Input
+                      type="number"
+                      placeholder="Unlimited"
+                      value={formData.max_uses}
+                      onChange={(e) => setFormData({ ...formData, max_uses: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Per Customer Limit</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={formData.usage_per_customer}
+                      onChange={(e) => setFormData({ ...formData, usage_per_customer: e.target.value })}
+                    />
+                  </div>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={formData.is_active} onCheckedChange={(c) => setFormData({ ...formData, is_active: c })} />
+                  <Label>Active</Label>
+                </div>
+                <Button className="w-full" onClick={handleSubmit} disabled={createOffer.isPending || updateOffer.isPending}>
+                  {editingOffer ? 'Update Offer' : 'Create Offer'}
+                </Button>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Max Uses (Optional)</Label>
-                  <Input
-                    type="number"
-                    placeholder="Unlimited"
-                    value={formData.max_uses}
-                    onChange={(e) => setFormData({ ...formData, max_uses: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Per Customer Limit</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={formData.usage_per_customer}
-                    onChange={(e) => setFormData({ ...formData, usage_per_customer: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch checked={formData.is_active} onCheckedChange={(c) => setFormData({ ...formData, is_active: c })} />
-                <Label>Active</Label>
-              </div>
-              <Button className="w-full" onClick={handleSubmit} disabled={createOffer.isPending || updateOffer.isPending}>
-                {editingOffer ? 'Update Offer' : 'Create Offer'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}
