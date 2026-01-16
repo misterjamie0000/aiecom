@@ -56,6 +56,10 @@ import AdminSuppliers from "./pages/admin/Suppliers";
 import AdminPurchaseOrders from "./pages/admin/PurchaseOrders";
 import AdminSegments from "./pages/admin/Segments";
 import AdminMarketing from "./pages/admin/Marketing";
+import AdminFlashSales from "./pages/admin/FlashSales";
+import AdminBundles from "./pages/admin/Bundles";
+import AdminBxgyOffers from "./pages/admin/BxgyOffers";
+import AdminRecommendations from "./pages/admin/Recommendations";
 
 const queryClient = new QueryClient();
 

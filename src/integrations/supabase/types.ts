@@ -158,6 +158,140 @@ export type Database = {
         }
         Relationships: []
       }
+      bundle_items: {
+        Row: {
+          bundle_id: string
+          created_at: string
+          id: string
+          product_id: string
+          quantity: number
+        }
+        Insert: {
+          bundle_id: string
+          created_at?: string
+          id?: string
+          product_id: string
+          quantity?: number
+        }
+        Update: {
+          bundle_id?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bundle_items_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "product_bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bundle_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bxgy_offers: {
+        Row: {
+          buy_category_id: string | null
+          buy_product_id: string | null
+          buy_quantity: number
+          created_at: string
+          current_uses: number | null
+          description: string | null
+          ends_at: string | null
+          get_category_id: string | null
+          get_discount_type: string
+          get_discount_value: number | null
+          get_product_id: string | null
+          get_quantity: number
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          name: string
+          starts_at: string | null
+          updated_at: string
+          usage_per_customer: number | null
+        }
+        Insert: {
+          buy_category_id?: string | null
+          buy_product_id?: string | null
+          buy_quantity?: number
+          created_at?: string
+          current_uses?: number | null
+          description?: string | null
+          ends_at?: string | null
+          get_category_id?: string | null
+          get_discount_type?: string
+          get_discount_value?: number | null
+          get_product_id?: string | null
+          get_quantity?: number
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          name: string
+          starts_at?: string | null
+          updated_at?: string
+          usage_per_customer?: number | null
+        }
+        Update: {
+          buy_category_id?: string | null
+          buy_product_id?: string | null
+          buy_quantity?: number
+          created_at?: string
+          current_uses?: number | null
+          description?: string | null
+          ends_at?: string | null
+          get_category_id?: string | null
+          get_discount_type?: string
+          get_discount_value?: number | null
+          get_product_id?: string | null
+          get_quantity?: number
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          name?: string
+          starts_at?: string | null
+          updated_at?: string
+          usage_per_customer?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bxgy_offers_buy_category_id_fkey"
+            columns: ["buy_category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bxgy_offers_buy_product_id_fkey"
+            columns: ["buy_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bxgy_offers_get_category_id_fkey"
+            columns: ["get_category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bxgy_offers_get_product_id_fkey"
+            columns: ["get_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_recipients: {
         Row: {
           campaign_id: string
@@ -568,6 +702,96 @@ export type Database = {
         }
         Relationships: []
       }
+      flash_sale_products: {
+        Row: {
+          created_at: string
+          flash_sale_id: string
+          id: string
+          max_quantity_per_user: number | null
+          product_id: string
+          special_price: number | null
+        }
+        Insert: {
+          created_at?: string
+          flash_sale_id: string
+          id?: string
+          max_quantity_per_user?: number | null
+          product_id: string
+          special_price?: number | null
+        }
+        Update: {
+          created_at?: string
+          flash_sale_id?: string
+          id?: string
+          max_quantity_per_user?: number | null
+          product_id?: string
+          special_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flash_sale_products_flash_sale_id_fkey"
+            columns: ["flash_sale_id"]
+            isOneToOne: false
+            referencedRelation: "flash_sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flash_sale_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flash_sales: {
+        Row: {
+          banner_image: string | null
+          created_at: string
+          current_uses: number | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          ends_at: string
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          name: string
+          starts_at: string
+          updated_at: string
+        }
+        Insert: {
+          banner_image?: string | null
+          created_at?: string
+          current_uses?: number | null
+          description?: string | null
+          discount_type?: string
+          discount_value: number
+          ends_at: string
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          name: string
+          starts_at: string
+          updated_at?: string
+        }
+        Update: {
+          banner_image?: string | null
+          created_at?: string
+          current_uses?: number | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          ends_at?: string
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          name?: string
+          starts_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       loyalty_points: {
         Row: {
           created_at: string
@@ -763,6 +987,60 @@ export type Database = {
         }
         Relationships: []
       }
+      product_bundles: {
+        Row: {
+          bundle_price: number
+          created_at: string
+          current_purchases: number | null
+          description: string | null
+          discount_percent: number | null
+          ends_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          max_purchases: number | null
+          name: string
+          original_price: number | null
+          slug: string
+          starts_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          bundle_price: number
+          created_at?: string
+          current_purchases?: number | null
+          description?: string | null
+          discount_percent?: number | null
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          max_purchases?: number | null
+          name: string
+          original_price?: number | null
+          slug: string
+          starts_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bundle_price?: number
+          created_at?: string
+          current_purchases?: number | null
+          description?: string | null
+          discount_percent?: number | null
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          max_purchases?: number | null
+          name?: string
+          original_price?: number | null
+          slug?: string
+          starts_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           alt_text: string | null
@@ -795,6 +1073,54 @@ export type Database = {
           {
             foreignKeyName: "product_images_product_id_fkey"
             columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_recommendations: {
+        Row: {
+          created_at: string
+          id: string
+          is_manual: boolean | null
+          product_id: string
+          recommendation_type: string
+          recommended_product_id: string
+          score: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_manual?: boolean | null
+          product_id: string
+          recommendation_type?: string
+          recommended_product_id: string
+          score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_manual?: boolean | null
+          product_id?: string
+          recommendation_type?: string
+          recommended_product_id?: string
+          score?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_recommendations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_recommendations_recommended_product_id_fkey"
+            columns: ["recommended_product_id"]
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
@@ -1380,6 +1706,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      user_product_views: {
+        Row: {
+          created_at: string
+          id: string
+          last_viewed_at: string
+          product_id: string
+          user_id: string
+          view_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_viewed_at?: string
+          product_id: string
+          user_id: string
+          view_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_viewed_at?: string
+          product_id?: string
+          user_id?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_product_views_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
