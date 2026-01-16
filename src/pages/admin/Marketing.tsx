@@ -251,6 +251,17 @@ export default function Marketing() {
                   <li>Abandoned carts recover करके lost sales वापस पाने के लिए</li>
                   <li>Inactive customers को re-engage करने के लिए</li>
                 </ul>
+                <p className="font-medium mt-3">इसे कैसे उपयोग करें?</p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li><strong>Step 1:</strong> "Create Campaign" बटन पर click करें</li>
+                  <li><strong>Step 2:</strong> Campaign का नाम, subject line और content लिखें</li>
+                  <li><strong>Step 3:</strong> Campaign type चुनें (Promotional, Newsletter, Welcome, etc.)</li>
+                  <li><strong>Step 4:</strong> Target segment चुनें (VIP Customers, New Users, All Customers)</li>
+                  <li><strong>Step 5:</strong> "Create Campaign" पर click करके save करें</li>
+                  <li><strong>Step 6:</strong> Campaign list में जाकर "Send" बटन दबाएं</li>
+                  <li><strong>Abandoned Carts के लिए:</strong> "Abandoned Carts" tab में जाकर "Send Reminder" बटन पर click करें</li>
+                  <li><strong>Analytics देखने के लिए:</strong> "Analytics" tab पर जाकर performance charts देखें</li>
+                </ul>
                 <p className="font-medium mt-3">फायदे:</p>
                 <ul className="list-disc list-inside space-y-1 text-sm">
                   <li>Sales बढ़ाएं targeted email campaigns से</li>
@@ -274,6 +285,17 @@ export default function Marketing() {
                   <li>To send promotional emails during festivals or special offers</li>
                   <li>To recover lost sales by reminding about abandoned carts</li>
                   <li>To re-engage inactive customers</li>
+                </ul>
+                <p className="font-medium mt-3">How to Use?</p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li><strong>Step 1:</strong> Click on the "Create Campaign" button</li>
+                  <li><strong>Step 2:</strong> Enter campaign name, subject line, and content</li>
+                  <li><strong>Step 3:</strong> Select campaign type (Promotional, Newsletter, Welcome, etc.)</li>
+                  <li><strong>Step 4:</strong> Choose target segment (VIP Customers, New Users, All Customers)</li>
+                  <li><strong>Step 5:</strong> Click "Create Campaign" to save</li>
+                  <li><strong>Step 6:</strong> Go to the campaign list and click "Send" button</li>
+                  <li><strong>For Abandoned Carts:</strong> Go to "Abandoned Carts" tab and click "Send Reminder" button</li>
+                  <li><strong>To View Analytics:</strong> Go to "Analytics" tab to see performance charts</li>
                 </ul>
                 <p className="font-medium mt-3">Benefits:</p>
                 <ul className="list-disc list-inside space-y-1 text-sm">
