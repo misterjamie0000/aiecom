@@ -23,6 +23,8 @@ import {
   Info,
   Languages,
   HelpCircle,
+  Settings,
+  MessageCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -77,6 +79,7 @@ import {
 } from '@/hooks/useMarketing';
 import { useCustomerSegments } from '@/hooks/useCustomerSegments';
 import CampaignAnalytics from '@/components/admin/CampaignAnalytics';
+import WhatsAppSettings from '@/components/admin/WhatsAppSettings';
 
 export default function Marketing() {
   const [activeTab, setActiveTab] = useState('campaigns');
@@ -196,10 +199,18 @@ export default function Marketing() {
         <div>
           <h1 className="text-2xl font-bold">Marketing</h1>
           <p className="text-muted-foreground">
-            Manage email campaigns and recover abandoned carts
+            Manage email & WhatsApp campaigns and recover abandoned carts
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setActiveTab('settings')}
+            className="gap-2"
+          >
+            <Settings className="w-4 h-4" />
+            Settings
+          </Button>
           <Button 
             variant="outline" 
             onClick={() => setShowFeatureInfo(!showFeatureInfo)}
@@ -403,6 +414,10 @@ export default function Marketing() {
           <TabsTrigger value="analytics" className="gap-2">
             <BarChart3 className="w-4 h-4" />
             Analytics
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="gap-2">
+            <MessageCircle className="w-4 h-4" />
+            WhatsApp Settings
           </TabsTrigger>
         </TabsList>
 
@@ -618,6 +633,11 @@ export default function Marketing() {
         {/* Analytics Tab */}
         <TabsContent value="analytics" className="space-y-4">
           <CampaignAnalytics campaigns={campaigns || []} />
+        </TabsContent>
+
+        {/* WhatsApp Settings Tab */}
+        <TabsContent value="settings" className="space-y-4">
+          <WhatsAppSettings />
         </TabsContent>
       </Tabs>
 
