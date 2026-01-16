@@ -19,6 +19,7 @@ import {
   Trash2,
   Edit,
   IndianRupee,
+  BarChart3,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -71,6 +72,7 @@ import {
   EmailCampaign,
 } from '@/hooks/useMarketing';
 import { useCustomerSegments } from '@/hooks/useCustomerSegments';
+import CampaignAnalytics from '@/components/admin/CampaignAnalytics';
 
 export default function Marketing() {
   const [activeTab, setActiveTab] = useState('campaigns');
@@ -287,6 +289,10 @@ export default function Marketing() {
             <ShoppingCart className="w-4 h-4" />
             Abandoned Carts ({abandonedCarts?.length || 0})
           </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Analytics
+          </TabsTrigger>
         </TabsList>
 
         {/* Campaigns Tab */}
@@ -496,6 +502,11 @@ export default function Marketing() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-4">
+          <CampaignAnalytics campaigns={campaigns || []} />
         </TabsContent>
       </Tabs>
 
