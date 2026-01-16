@@ -30,39 +30,53 @@ export default function CartItem({ item }: CartItemProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -100 }}
-      className="flex gap-4 p-4 bg-card rounded-xl border"
+      className="flex flex-col sm:flex-row gap-4 p-4 bg-card rounded-xl border"
     >
-      <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted shrink-0">
-        <img
-          src={(product as any).image_url || `https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=200&h=200&fit=crop`}
-          alt={product.name}
-          className="w-full h-full object-cover"
-        />
+      <div className="flex gap-4">
+        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-muted shrink-0">
+          <img
+            src={(product as any).image_url || `https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=200&h=200&fit=crop`}
+            alt={product.name}
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        <div className="flex-1 min-w-0 sm:hidden">
+          <h3 className="font-medium text-sm line-clamp-2">{product.name}</h3>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="font-bold text-sm">₹{product.price}</span>
+            {product.mrp && product.mrp > product.price && (
+              <span className="text-xs text-muted-foreground line-through">₹{product.mrp}</span>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 min-w-0">
-        <h3 className="font-medium line-clamp-2">{product.name}</h3>
-        
-        {product.short_description && (
-          <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-            {product.short_description}
-          </p>
-        )}
-
-        <div className="flex items-center gap-2 mt-2">
-          <span className="font-bold">₹{product.price}</span>
-          {product.mrp && product.mrp > product.price && (
-            <>
-              <span className="text-sm text-muted-foreground line-through">₹{product.mrp}</span>
-              <span className="text-xs text-green-600 font-medium">
-                {Math.round(((product.mrp - product.price) / product.mrp) * 100)}% off
-              </span>
-            </>
+        <div className="hidden sm:block">
+          <h3 className="font-medium line-clamp-2">{product.name}</h3>
+          
+          {product.short_description && (
+            <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+              {product.short_description}
+            </p>
           )}
+
+          <div className="flex items-center gap-2 mt-2">
+            <span className="font-bold">₹{product.price}</span>
+            {product.mrp && product.mrp > product.price && (
+              <>
+                <span className="text-sm text-muted-foreground line-through">₹{product.mrp}</span>
+                <span className="text-xs text-green-600 font-medium">
+                  {Math.round(((product.mrp - product.price) / product.mrp) * 100)}% off
+                </span>
+              </>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center justify-between mt-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mt-2 sm:mt-3">
+          <div className="flex items-center gap-1 sm:gap-2">
             <Button
               variant="outline"
               size="icon"
@@ -84,7 +98,7 @@ export default function CartItem({ item }: CartItemProps) {
             </Button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="text-right">
               <p className="font-bold">₹{itemTotal}</p>
               {savings > 0 && (

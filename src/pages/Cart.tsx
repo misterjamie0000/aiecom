@@ -78,29 +78,29 @@ export default function Cart() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6 sm:py-8">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+      <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Shopping Cart</h1>
-          <p className="text-muted-foreground">{summary.itemCount} items in your cart</p>
+          <h1 className="text-xl sm:text-2xl font-bold">Shopping Cart</h1>
+          <p className="text-sm text-muted-foreground">{summary.itemCount} items in your cart</p>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Cart Items */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-3 sm:space-y-4">
           <AnimatePresence>
             {cartItems.map((item) => (
               <CartItem key={item.id} item={item} />
             ))}
           </AnimatePresence>
 
-          <div className="flex justify-between items-center pt-4">
-            <Button variant="outline" asChild>
+          <div className="flex justify-center sm:justify-start pt-4">
+            <Button variant="outline" asChild className="w-full sm:w-auto">
               <Link to="/products">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Continue Shopping
@@ -109,8 +109,8 @@ export default function Cart() {
           </div>
         </div>
 
-        {/* Summary */}
-        <div>
+        {/* Summary - Fixed on mobile */}
+        <div className="order-first lg:order-last">
           <CartSummary
             subtotal={summary.subtotal}
             totalMrp={summary.totalMrp}
