@@ -543,14 +543,14 @@ export default function Marketing() {
               <div className="space-y-2">
                 <Label>Target Segment (Optional)</Label>
                 <Select
-                  value={formData.target_segment_id}
-                  onValueChange={(value) => setFormData({ ...formData, target_segment_id: value })}
+                  value={formData.target_segment_id || 'all'}
+                  onValueChange={(value) => setFormData({ ...formData, target_segment_id: value === 'all' ? '' : value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All customers" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All customers</SelectItem>
+                    <SelectItem value="all">All customers</SelectItem>
                     {segments?.map((segment) => (
                       <SelectItem key={segment.id} value={segment.id}>
                         <div className="flex items-center gap-2">
