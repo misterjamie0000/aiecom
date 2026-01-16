@@ -34,6 +34,10 @@ import {
   ClipboardList,
   Megaphone,
   UserCog,
+  Zap,
+  PackageOpen,
+  Percent,
+  Brain,
 } from 'lucide-react';
 
 const allSidebarItems = [
@@ -48,6 +52,10 @@ const allSidebarItems = [
   { icon: UserCog, label: 'Segments', href: '/admin/segments', feature: null },
   { icon: RotateCcw, label: 'Returns', href: '/admin/returns', feature: null },
   { icon: Megaphone, label: 'Marketing', href: '/admin/marketing', feature: null },
+  { icon: Zap, label: 'Flash Sales', href: '/admin/flash-sales', feature: null },
+  { icon: PackageOpen, label: 'Bundles', href: '/admin/bundles', feature: null },
+  { icon: Percent, label: 'BXGY Offers', href: '/admin/bxgy-offers', feature: null },
+  { icon: Brain, label: 'Recommendations', href: '/admin/recommendations', feature: null },
   { icon: Tag, label: 'Coupons', href: '/admin/coupons', feature: null },
   { icon: Gift, label: 'Loyalty', href: '/admin/loyalty', feature: null },
   { icon: MessageSquare, label: 'Reviews', href: '/admin/reviews', feature: null },
