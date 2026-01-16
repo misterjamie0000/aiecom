@@ -118,6 +118,10 @@ const App = () => (
               <Route path="suppliers" element={<AdminSuppliers />} />
               <Route path="purchase-orders" element={<AdminPurchaseOrders />} />
               <Route path="marketing" element={<AdminMarketing />} />
+              <Route path="flash-sales" element={<AdminFlashSales />} />
+              <Route path="bundles" element={<AdminBundles />} />
+              <Route path="bxgy-offers" element={<AdminBxgyOffers />} />
+              <Route path="recommendations" element={<AdminRecommendations />} />
               <Route path="notifications" element={<AdminNotifications />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="export" element={<AdminExportCenter />} />
