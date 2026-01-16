@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart, useCartSummary } from '@/hooks/useCart';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -33,6 +34,9 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
+  
+  const { data: cartItems } = useCart();
+  const { itemCount: cartItemCount } = useCartSummary(cartItems || []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,12 +119,14 @@ export default function Header() {
             <Button variant="ghost" size="icon" className="relative" asChild>
               <Link to="/cart">
                 <ShoppingBag className="w-5 h-5" />
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-xs"
-                >
-                  0
-                </Badge>
+                {cartItemCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-1 -right-1 min-w-5 h-5 px-1 flex items-center justify-center text-xs"
+                  >
+                    {cartItemCount > 99 ? '99+' : cartItemCount}
+                  </Badge>
+                )}
               </Link>
             </Button>
 
