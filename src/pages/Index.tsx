@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import HeroBanner from '@/components/home/HeroBanner';
+import FlashSaleBanner from '@/components/home/FlashSaleBanner';
 import CategoryShowcase from '@/components/home/CategoryShowcase';
 import FeaturedProducts from '@/components/home/FeaturedProducts';
 import TrendingProducts from '@/components/home/TrendingProducts';
@@ -73,6 +74,8 @@ export default function Index() {
 
   return (
     <div className="min-h-screen">
+      <FlashSaleBanner />
+      
       <HeroBanner banners={banners || []} />
       
       <FeatureStrip />

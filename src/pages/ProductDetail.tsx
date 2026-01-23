@@ -22,6 +22,7 @@ import { useAddToCart } from '@/hooks/useCart';
 import { useToggleWishlist, useWishlistIds } from '@/hooks/useWishlist';
 import { useProductRatingStats } from '@/hooks/useReviews';
 import { ProductReviews } from '@/components/product/ProductReviews';
+import { FlashSaleCompactBanner } from '@/components/home/FlashSaleBanner';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -111,6 +112,9 @@ export default function ProductDetail() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Flash Sale Banner */}
+      <FlashSaleCompactBanner />
+      
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
         <Link to="/" className="hover:text-foreground">Home</Link>
