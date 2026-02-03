@@ -20,7 +20,6 @@ import {
   Settings,
   ImageIcon,
   BarChart3,
-  CreditCard,
   Bell,
   Menu,
   X,
@@ -63,7 +62,7 @@ const allSidebarItems = [
   { icon: FileText, label: 'Pages', href: '/admin/pages', feature: null },
   { icon: BarChart3, label: 'Reports', href: '/admin/reports', feature: null },
   { icon: FileDown, label: 'Tally Export', href: '/admin/export', feature: null },
-  { icon: CreditCard, label: 'Payments', href: '/admin/payments', feature: null },
+  
   { icon: Truck, label: 'Shipping', href: '/admin/shipping', feature: null },
   { icon: Bell, label: 'Notifications', href: '/admin/notifications', feature: null },
   { icon: Settings, label: 'Settings', href: '/admin/settings', feature: null },

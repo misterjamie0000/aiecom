@@ -47,7 +47,7 @@ import AdminReviews from "./pages/admin/Reviews";
 import AdminBanners from "./pages/admin/Banners";
 import AdminPages from "./pages/admin/Pages";
 import AdminReports from "./pages/admin/Reports";
-import AdminPayments from "./pages/admin/Payments";
+
 import AdminShipping from "./pages/admin/Shipping";
 import AdminNotifications from "./pages/admin/Notifications";
 import AdminSettings from "./pages/admin/Settings";
@@ -114,7 +114,7 @@ const App = () => (
               <Route path="banners" element={<AdminBanners />} />
               <Route path="pages" element={<AdminPages />} />
               <Route path="reports" element={<AdminReports />} />
-              <Route path="payments" element={<AdminPayments />} />
+              
               <Route path="shipping" element={<AdminShipping />} />
               <Route path="inventory" element={<AdminInventory />} />
               <Route path="suppliers" element={<AdminSuppliers />} />
