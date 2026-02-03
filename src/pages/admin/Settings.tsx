@@ -56,6 +56,13 @@ export default function AdminSettings() {
     razorpay_enabled: true,
     razorpay_key_id: '',
     razorpay_key_secret: '',
+    phonepe_enabled: false,
+    phonepe_merchant_id: '',
+    phonepe_salt_key: '',
+    phonepe_salt_index: '1',
+    paytm_enabled: false,
+    paytm_merchant_id: '',
+    paytm_merchant_key: '',
     cod_enabled: true,
     cod_min_order: 0,
     cod_max_order: 50000,
@@ -63,6 +70,8 @@ export default function AdminSettings() {
 
   const [showSecrets, setShowSecrets] = useState({
     razorpay_key_secret: false,
+    phonepe_salt_key: false,
+    paytm_merchant_key: false,
   });
   
   // Load settings from database
@@ -319,6 +328,168 @@ export default function AdminSettings() {
                     for enhanced security. Contact support if you need help with production setup.
                   </AlertDescription>
                 </Alert>
+              </CardContent>
+            </Card>
+
+            {/* PhonePe Settings */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-purple-600 rounded flex items-center justify-center">
+                        <CreditCard className="w-4 h-4 text-white" />
+                      </div>
+                      PhonePe
+                    </CardTitle>
+                    <CardDescription>Accept payments via PhonePe UPI & Wallet</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {paymentSettings.phonepe_merchant_id ? (
+                      <Badge variant="default" className="bg-green-500">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Configured
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive">
+                        <AlertTriangle className="w-3 h-3 mr-1" />
+                        Not Configured
+                      </Badge>
+                    )}
+                    <Switch
+                      checked={paymentSettings.phonepe_enabled}
+                      onCheckedChange={(checked) => setPaymentSettings({ ...paymentSettings, phonepe_enabled: checked })}
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Get your API keys from <a href="https://developer.phonepe.com/v1/reference/pg-credentials" target="_blank" rel="noopener noreferrer" className="underline font-medium">PhonePe Developer Dashboard</a>
+                  </AlertDescription>
+                </Alert>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phonepe_merchant_id">Merchant ID</Label>
+                    <Input
+                      id="phonepe_merchant_id"
+                      value={paymentSettings.phonepe_merchant_id}
+                      onChange={(e) => setPaymentSettings({ ...paymentSettings, phonepe_merchant_id: e.target.value })}
+                      placeholder="MERCHANTUAT or Production ID"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phonepe_salt_key">Salt Key</Label>
+                    <div className="relative">
+                      <Input
+                        id="phonepe_salt_key"
+                        type={showSecrets.phonepe_salt_key ? 'text' : 'password'}
+                        value={paymentSettings.phonepe_salt_key}
+                        onChange={(e) => setPaymentSettings({ ...paymentSettings, phonepe_salt_key: e.target.value })}
+                        placeholder="Enter your PhonePe Salt Key"
+                        className="pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full"
+                        onClick={() => setShowSecrets({ ...showSecrets, phonepe_salt_key: !showSecrets.phonepe_salt_key })}
+                      >
+                        {showSecrets.phonepe_salt_key ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2 max-w-xs">
+                  <Label htmlFor="phonepe_salt_index">Salt Index</Label>
+                  <Input
+                    id="phonepe_salt_index"
+                    value={paymentSettings.phonepe_salt_index}
+                    onChange={(e) => setPaymentSettings({ ...paymentSettings, phonepe_salt_index: e.target.value })}
+                    placeholder="1"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Paytm Settings */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-sky-500 rounded flex items-center justify-center">
+                        <CreditCard className="w-4 h-4 text-white" />
+                      </div>
+                      Paytm
+                    </CardTitle>
+                    <CardDescription>Accept payments via Paytm UPI, Wallet & Net Banking</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {paymentSettings.paytm_merchant_id ? (
+                      <Badge variant="default" className="bg-green-500">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Configured
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive">
+                        <AlertTriangle className="w-3 h-3 mr-1" />
+                        Not Configured
+                      </Badge>
+                    )}
+                    <Switch
+                      checked={paymentSettings.paytm_enabled}
+                      onCheckedChange={(checked) => setPaymentSettings({ ...paymentSettings, paytm_enabled: checked })}
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Get your API keys from <a href="https://dashboard.paytm.com/next/apikeys" target="_blank" rel="noopener noreferrer" className="underline font-medium">Paytm Developer Dashboard</a>
+                  </AlertDescription>
+                </Alert>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="paytm_merchant_id">Merchant ID (MID)</Label>
+                    <Input
+                      id="paytm_merchant_id"
+                      value={paymentSettings.paytm_merchant_id}
+                      onChange={(e) => setPaymentSettings({ ...paymentSettings, paytm_merchant_id: e.target.value })}
+                      placeholder="Enter your Paytm MID"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="paytm_merchant_key">Merchant Key</Label>
+                    <div className="relative">
+                      <Input
+                        id="paytm_merchant_key"
+                        type={showSecrets.paytm_merchant_key ? 'text' : 'password'}
+                        value={paymentSettings.paytm_merchant_key}
+                        onChange={(e) => setPaymentSettings({ ...paymentSettings, paytm_merchant_key: e.target.value })}
+                        placeholder="Enter your Paytm Merchant Key"
+                        className="pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full"
+                        onClick={() => setShowSecrets({ ...showSecrets, paytm_merchant_key: !showSecrets.paytm_merchant_key })}
+                      >
+                        {showSecrets.paytm_merchant_key ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
