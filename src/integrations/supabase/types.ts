@@ -2020,7 +2020,7 @@ export type Database = {
         | "cancelled"
         | "returned"
         | "refunded"
-      payment_method: "razorpay" | "stripe" | "cod"
+      payment_method: "razorpay" | "stripe" | "cod" | "phonepe" | "paytm"
       payment_status: "pending" | "paid" | "failed" | "refunded"
     }
     CompositeTypes: {
@@ -2159,7 +2159,7 @@ export const Constants = {
         "returned",
         "refunded",
       ],
-      payment_method: ["razorpay", "stripe", "cod"],
+      payment_method: ["razorpay", "stripe", "cod", "phonepe", "paytm"],
       payment_status: ["pending", "paid", "failed", "refunded"],
     },
   },

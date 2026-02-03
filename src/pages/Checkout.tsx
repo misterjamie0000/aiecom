@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CreditCard, Truck, CheckCircle2, Package, Loader2 } from 'lucide-react';
+import { ArrowLeft, CreditCard, Truck, CheckCircle2, Package, Loader2, Smartphone, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -10,12 +10,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart, useCartSummary, useClearCart } from '@/hooks/useCart';
 import { useRazorpay } from '@/hooks/useRazorpay';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CheckoutAddressSection from '@/components/checkout/CheckoutAddressSection';
 import { sendOrderEmail } from '@/hooks/useOrderEmails';
 
 type Step = 'address' | 'payment' | 'confirmation';
+type PaymentMethodType = 'cod' | 'razorpay' | 'phonepe' | 'paytm';
 
 interface AddressData {
   id?: string;
@@ -29,10 +31,20 @@ interface AddressData {
   pincode: string;
 }
 
+interface PaymentGateway {
+  id: PaymentMethodType;
+  name: string;
+  description: string;
+  icon: React.ReactNode;
+  color: string;
+  recommended?: boolean;
+}
+
 export default function Checkout() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: cartItems } = useCart();
+  const { data: siteSettings } = useSiteSettings();
   const summary = useCartSummary(cartItems || []);
   const clearCart = useClearCart();
   const { initiatePayment, loadScript, isLoading: isPaymentLoading } = useRazorpay();
@@ -41,12 +53,89 @@ export default function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [address, setAddress] = useState<AddressData | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'razorpay'>('cod');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('razorpay');
 
-  // Preload Razorpay script
+  // Get payment settings from site settings
+  const paymentSettings = useMemo(() => {
+    const paymentSetting = siteSettings?.find(s => s.key === 'payment_gateway');
+    return {
+      razorpay_enabled: true,
+      phonepe_enabled: false,
+      paytm_enabled: false,
+      cod_enabled: true,
+      cod_min_order: 0,
+      cod_max_order: 50000,
+      ...(paymentSetting?.value as any || {}),
+    };
+  }, [siteSettings]);
+
+  // Build available payment gateways based on settings
+  const availableGateways = useMemo(() => {
+    const gateways: PaymentGateway[] = [];
+    
+    if (paymentSettings.razorpay_enabled) {
+      gateways.push({
+        id: 'razorpay',
+        name: 'Razorpay',
+        description: 'UPI, Cards, Net Banking, Wallets',
+        icon: <CreditCard className="w-5 h-5 text-white" />,
+        color: 'bg-blue-600',
+        recommended: true,
+      });
+    }
+    
+    if (paymentSettings.phonepe_enabled) {
+      gateways.push({
+        id: 'phonepe',
+        name: 'PhonePe',
+        description: 'PhonePe UPI & Wallet',
+        icon: <Smartphone className="w-5 h-5 text-white" />,
+        color: 'bg-purple-600',
+      });
+    }
+    
+    if (paymentSettings.paytm_enabled) {
+      gateways.push({
+        id: 'paytm',
+        name: 'Paytm',
+        description: 'Paytm UPI, Wallet & Net Banking',
+        icon: <Wallet className="w-5 h-5 text-white" />,
+        color: 'bg-sky-500',
+      });
+    }
+    
+    // Check COD eligibility based on order value
+    const isCodEligible = 
+      paymentSettings.cod_enabled && 
+      (paymentSettings.cod_min_order === 0 || summary.total >= paymentSettings.cod_min_order) &&
+      (paymentSettings.cod_max_order === 0 || summary.total <= paymentSettings.cod_max_order);
+    
+    if (isCodEligible) {
+      gateways.push({
+        id: 'cod',
+        name: 'Cash on Delivery',
+        description: 'Pay when you receive your order',
+        icon: <Truck className="w-5 h-5 text-white" />,
+        color: 'bg-amber-500',
+      });
+    }
+    
+    return gateways;
+  }, [paymentSettings, summary.total]);
+
+  // Set default payment method to first available gateway
   useEffect(() => {
-    loadScript();
-  }, [loadScript]);
+    if (availableGateways.length > 0 && !availableGateways.find(g => g.id === paymentMethod)) {
+      setPaymentMethod(availableGateways[0].id);
+    }
+  }, [availableGateways, paymentMethod]);
+
+  // Preload Razorpay script if enabled
+  useEffect(() => {
+    if (paymentSettings.razorpay_enabled) {
+      loadScript();
+    }
+  }, [loadScript, paymentSettings.razorpay_enabled]);
 
   if (!user) {
     return (
@@ -90,7 +179,7 @@ export default function Checkout() {
         order_number: orderNumber || `ORD-${Date.now()}`,
         status: 'pending',
         payment_status: 'pending',
-        payment_method: paymentMethod,
+        payment_method: paymentMethod as 'razorpay' | 'cod' | 'phonepe' | 'paytm',
         subtotal: summary.subtotal,
         shipping_amount: summary.shipping,
         discount_amount: summary.discount,
@@ -136,76 +225,49 @@ export default function Checkout() {
     setIsProcessing(true);
 
     try {
-      if (paymentMethod === 'razorpay') {
+      const isOnlinePayment = paymentMethod === 'razorpay' || paymentMethod === 'phonepe' || paymentMethod === 'paytm';
+      
+      if (isOnlinePayment) {
         // Create order first
         const order = await createOrder();
 
-        // Initiate Razorpay payment
-        const paymentSuccess = await initiatePayment({
-          amount: summary.total,
-          name: 'GlowMart',
-          description: `Order #${order.order_number}`,
-          orderId: order.id,
-          prefill: {
-            name: address?.fullName,
-            contact: address?.phone,
-            email: user.email || undefined,
-          },
-          theme: {
-            color: '#6366f1',
-          },
-        });
-
-        if (paymentSuccess) {
-          // Clear cart and show confirmation
-          await clearCart.mutateAsync();
-          
-          // Send order confirmation email
-          sendOrderEmail({
-            email: user.email || '',
-            customerName: address?.fullName || 'Customer',
-            orderNumber: order.order_number,
-            emailType: 'order_placed',
-            orderDetails: {
-              items: cartItems!.map(item => ({
-                product_name: item.product.name,
-                quantity: item.quantity,
-                unit_price: Number(item.product.price),
-                total_price: Number(item.product.price) * item.quantity,
-              })),
-              subtotal: summary.subtotal,
-              taxAmount: 0,
-              shippingAmount: summary.shipping,
-              discountAmount: summary.discount,
-              totalAmount: summary.total,
-              paymentMethod: 'razorpay',
-              shippingAddress: {
-                full_name: address?.fullName || '',
-                address_line1: address?.addressLine1 || '',
-                address_line2: address?.addressLine2,
-                city: address?.city || '',
-                state: address?.state || '',
-                pincode: address?.pincode || '',
-                phone: address?.phone || '',
-              },
+        if (paymentMethod === 'razorpay') {
+          // Initiate Razorpay payment
+          const paymentSuccess = await initiatePayment({
+            amount: summary.total,
+            name: 'GlowMart',
+            description: `Order #${order.order_number}`,
+            orderId: order.id,
+            prefill: {
+              name: address?.fullName,
+              contact: address?.phone,
+              email: user.email || undefined,
+            },
+            theme: {
+              color: '#6366f1',
             },
           });
+
+          if (paymentSuccess) {
+            await handlePaymentSuccess(order);
+          } else {
+            await handlePaymentFailure(order);
+          }
+        } else if (paymentMethod === 'phonepe' || paymentMethod === 'paytm') {
+          // PhonePe and Paytm integration - placeholder for now
+          // In production, you would integrate their SDK similar to Razorpay
+          toast.info(`${paymentMethod === 'phonepe' ? 'PhonePe' : 'Paytm'} integration coming soon. Using demo mode.`);
           
-          setOrderId(order.order_number);
-          setStep('confirmation');
-        } else {
-          // Payment failed or cancelled - update order status
+          // Demo: simulate successful payment
           await supabase
             .from('orders')
             .update({ 
-              status: 'cancelled',
-              payment_status: 'failed',
-              cancel_reason: 'Payment failed or cancelled by user'
+              status: 'confirmed',
+              payment_status: 'paid'
             })
             .eq('id', order.id);
           
-          // Optionally keep the order in pending for retry
-          toast.error('Payment was not completed. Please try again.');
+          await handlePaymentSuccess(order);
         }
       } else {
         // Cash on Delivery
@@ -217,42 +279,7 @@ export default function Checkout() {
           .update({ status: 'confirmed' })
           .eq('id', order.id);
 
-        // Clear cart
-        await clearCart.mutateAsync();
-
-        // Send order confirmation email
-        sendOrderEmail({
-          email: user.email || '',
-          customerName: address?.fullName || 'Customer',
-          orderNumber: order.order_number,
-          emailType: 'order_placed',
-          orderDetails: {
-            items: cartItems!.map(item => ({
-              product_name: item.product.name,
-              quantity: item.quantity,
-              unit_price: Number(item.product.price),
-              total_price: Number(item.product.price) * item.quantity,
-            })),
-            subtotal: summary.subtotal,
-            taxAmount: 0,
-            shippingAmount: summary.shipping,
-            discountAmount: summary.discount,
-            totalAmount: summary.total,
-            paymentMethod: 'cod',
-            shippingAddress: {
-              full_name: address?.fullName || '',
-              address_line1: address?.addressLine1 || '',
-              address_line2: address?.addressLine2,
-              city: address?.city || '',
-              state: address?.state || '',
-              pincode: address?.pincode || '',
-              phone: address?.phone || '',
-            },
-          },
-        });
-
-        setOrderId(order.order_number);
-        setStep('confirmation');
+        await handlePaymentSuccess(order);
         toast.success('Order placed successfully!');
       }
     } catch (error: any) {
@@ -261,6 +288,58 @@ export default function Checkout() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handlePaymentSuccess = async (order: any) => {
+    // Clear cart
+    await clearCart.mutateAsync();
+    
+    // Send order confirmation email
+    sendOrderEmail({
+      email: user.email || '',
+      customerName: address?.fullName || 'Customer',
+      orderNumber: order.order_number,
+      emailType: 'order_placed',
+      orderDetails: {
+        items: cartItems!.map(item => ({
+          product_name: item.product.name,
+          quantity: item.quantity,
+          unit_price: Number(item.product.price),
+          total_price: Number(item.product.price) * item.quantity,
+        })),
+        subtotal: summary.subtotal,
+        taxAmount: 0,
+        shippingAmount: summary.shipping,
+        discountAmount: summary.discount,
+        totalAmount: summary.total,
+        paymentMethod: paymentMethod,
+        shippingAddress: {
+          full_name: address?.fullName || '',
+          address_line1: address?.addressLine1 || '',
+          address_line2: address?.addressLine2,
+          city: address?.city || '',
+          state: address?.state || '',
+          pincode: address?.pincode || '',
+          phone: address?.phone || '',
+        },
+      },
+    });
+    
+    setOrderId(order.order_number);
+    setStep('confirmation');
+  };
+
+  const handlePaymentFailure = async (order: any) => {
+    await supabase
+      .from('orders')
+      .update({ 
+        status: 'cancelled',
+        payment_status: 'failed',
+        cancel_reason: 'Payment failed or cancelled by user'
+      })
+      .eq('id', order.id);
+    
+    toast.error('Payment was not completed. Please try again.');
   };
 
   if (step === 'confirmation') {
@@ -318,7 +397,6 @@ export default function Checkout() {
               </p>
             </motion.div>
 
-            {/* Info Cards */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -334,7 +412,10 @@ export default function Checkout() {
                 <CreditCard className="w-6 h-6 text-purple-500 mx-auto mb-2" />
                 <p className="text-xs text-muted-foreground">Payment</p>
                 <p className="text-sm font-semibold">
-                  {paymentMethod === 'razorpay' ? 'Paid Online' : 'Cash on Delivery'}
+                  {paymentMethod === 'cod' ? 'Cash on Delivery' : 
+                   paymentMethod === 'razorpay' ? 'Paid via Razorpay' :
+                   paymentMethod === 'phonepe' ? 'Paid via PhonePe' :
+                   paymentMethod === 'paytm' ? 'Paid via Paytm' : 'Paid Online'}
                 </p>
               </div>
             </motion.div>
@@ -428,48 +509,45 @@ export default function Checkout() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <RadioGroup
-                    value={paymentMethod}
-                    onValueChange={(v) => setPaymentMethod(v as 'cod' | 'razorpay')}
-                    className="space-y-4"
-                  >
-                    <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition-all ${
-                      paymentMethod === 'razorpay' ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
-                    }`}>
-                      <RadioGroupItem value="razorpay" id="razorpay" />
-                      <Label htmlFor="razorpay" className="flex-1 cursor-pointer">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                            <CreditCard className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-medium">Pay Online</p>
-                            <p className="text-sm text-muted-foreground">UPI, Cards, Net Banking, Wallets</p>
-                          </div>
-                        </div>
-                      </Label>
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                        Recommended
-                      </span>
+                  {availableGateways.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>No payment methods available for this order.</p>
+                      <p className="text-sm mt-2">Please contact support.</p>
                     </div>
-
-                    <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition-all ${
-                      paymentMethod === 'cod' ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
-                    }`}>
-                      <RadioGroupItem value="cod" id="cod" />
-                      <Label htmlFor="cod" className="flex-1 cursor-pointer">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center">
-                            <Truck className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-medium">Cash on Delivery</p>
-                            <p className="text-sm text-muted-foreground">Pay when you receive your order</p>
-                          </div>
+                  ) : (
+                    <RadioGroup
+                      value={paymentMethod}
+                      onValueChange={(v) => setPaymentMethod(v as PaymentMethodType)}
+                      className="space-y-4"
+                    >
+                      {availableGateways.map((gateway) => (
+                        <div 
+                          key={gateway.id}
+                          className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition-all ${
+                            paymentMethod === gateway.id ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
+                          }`}
+                        >
+                          <RadioGroupItem value={gateway.id} id={gateway.id} />
+                          <Label htmlFor={gateway.id} className="flex-1 cursor-pointer">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-10 h-10 ${gateway.color} rounded-lg flex items-center justify-center`}>
+                                {gateway.icon}
+                              </div>
+                              <div>
+                                <p className="font-medium">{gateway.name}</p>
+                                <p className="text-sm text-muted-foreground">{gateway.description}</p>
+                              </div>
+                            </div>
+                          </Label>
+                          {gateway.recommended && (
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                              Recommended
+                            </span>
+                          )}
                         </div>
-                      </Label>
-                    </div>
-                  </RadioGroup>
+                      ))}
+                    </RadioGroup>
+                  )}
 
                   <div className="flex gap-4 mt-6">
                     <Button variant="outline" onClick={() => setStep('address')}>
@@ -479,17 +557,17 @@ export default function Checkout() {
                       className="flex-1" 
                       size="lg" 
                       onClick={handlePlaceOrder}
-                      disabled={isButtonDisabled}
+                      disabled={isButtonDisabled || availableGateways.length === 0}
                     >
                       {isButtonDisabled ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                           Processing...
                         </>
-                      ) : paymentMethod === 'razorpay' ? (
-                        `Pay ₹${summary.total}`
-                      ) : (
+                      ) : paymentMethod === 'cod' ? (
                         `Place Order • ₹${summary.total}`
+                      ) : (
+                        `Pay ₹${summary.total}`
                       )}
                     </Button>
                   </div>
@@ -545,9 +623,9 @@ export default function Checkout() {
                 <span>₹{summary.total}</span>
               </div>
 
-              {paymentMethod === 'razorpay' && (
+              {paymentMethod !== 'cod' && (
                 <p className="text-xs text-muted-foreground mt-4 text-center">
-                  🔒 Secured by Razorpay
+                  🔒 Secured by {paymentMethod === 'razorpay' ? 'Razorpay' : paymentMethod === 'phonepe' ? 'PhonePe' : paymentMethod === 'paytm' ? 'Paytm' : 'Gateway'}
                 </p>
               )}
             </CardContent>
