@@ -41,6 +41,8 @@ export default function AdminSettings() {
     show_out_of_stock: true,
     reviews_enabled: true,
     reviews_moderation: true,
+    gst_enabled: true,
+    gst_percentage: 18,
   });
 
   const [featureSettings, setFeatureSettings] = useState({
@@ -507,6 +509,48 @@ export default function AdminSettings() {
               <Button onClick={handleSaveGeneral} disabled={upsertSetting.isPending}>
                 <Save className="w-4 h-4 mr-2" />
                 Save General Settings
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* GST Settings Card */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>GST Settings</CardTitle>
+              <CardDescription>Goods and Services Tax configuration</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Enable GST</Label>
+                  <p className="text-sm text-muted-foreground">Apply GST to all orders</p>
+                </div>
+                <Switch
+                  checked={generalSettings.gst_enabled}
+                  onCheckedChange={(checked) => setGeneralSettings({ ...generalSettings, gst_enabled: checked })}
+                />
+              </div>
+              
+              {generalSettings.gst_enabled && (
+                <div className="space-y-2">
+                  <Label htmlFor="gst_percentage">GST Percentage (%)</Label>
+                  <div className="flex items-center gap-2 max-w-xs">
+                    <Input
+                      id="gst_percentage"
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={generalSettings.gst_percentage}
+                      onChange={(e) => setGeneralSettings({ ...generalSettings, gst_percentage: Number(e.target.value) })}
+                    />
+                    <span className="text-muted-foreground">%</span>
+                  </div>
+                </div>
+              )}
+              
+              <Button onClick={handleSaveGeneral} disabled={upsertSetting.isPending}>
+                <Save className="w-4 h-4 mr-2" />
+                Save GST Settings
               </Button>
             </CardContent>
           </Card>
