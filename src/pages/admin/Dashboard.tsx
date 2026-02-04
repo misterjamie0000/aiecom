@@ -28,13 +28,117 @@ export default function AdminDashboard() {
   const { data: products } = useProducts();
   const { data: customers } = useCustomers();
 
-  // Calculate stats
+  // Calculate current period (last 30 days) and previous period (31-60 days ago)
+  const now = new Date();
+  const currentPeriodStart = subDays(now, 30);
+  const previousPeriodStart = subDays(now, 60);
+  const previousPeriodEnd = subDays(now, 31);
+
+  // Current period orders
+  const currentPeriodOrders = orders?.filter(order => 
+    new Date(order.created_at) >= currentPeriodStart
+  ) || [];
+  
+  // Previous period orders
+  const previousPeriodOrders = orders?.filter(order => {
+    const date = new Date(order.created_at);
+    return date >= previousPeriodStart && date <= previousPeriodEnd;
+  }) || [];
+
+  // Current period customers (created in last 30 days)
+  const currentPeriodCustomers = customers?.filter(customer => 
+    new Date(customer.created_at) >= currentPeriodStart
+  ) || [];
+  
+  // Previous period customers
+  const previousPeriodCustomers = customers?.filter(customer => {
+    const date = new Date(customer.created_at);
+    return date >= previousPeriodStart && date <= previousPeriodEnd;
+  }) || [];
+
+  // Current period products
+  const currentPeriodProducts = products?.filter(product => 
+    new Date(product.created_at) >= currentPeriodStart
+  ) || [];
+  
+  // Previous period products
+  const previousPeriodProducts = products?.filter(product => {
+    const date = new Date(product.created_at);
+    return date >= previousPeriodStart && date <= previousPeriodEnd;
+  }) || [];
+
+  // Calculate totals
   const totalRevenue = orders?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
   const totalOrders = orders?.length || 0;
   const totalCustomers = customers?.length || 0;
   const totalProducts = products?.length || 0;
 
-  // Last 30 days revenue trend
+  // Calculate period-specific values
+  const currentRevenue = currentPeriodOrders.reduce((sum, order) => sum + Number(order.total_amount), 0);
+  const previousRevenue = previousPeriodOrders.reduce((sum, order) => sum + Number(order.total_amount), 0);
+  
+  const currentOrderCount = currentPeriodOrders.length;
+  const previousOrderCount = previousPeriodOrders.length;
+  
+  const currentCustomerCount = currentPeriodCustomers.length;
+  const previousCustomerCount = previousPeriodCustomers.length;
+  
+  const currentProductCount = currentPeriodProducts.length;
+  const previousProductCount = previousPeriodProducts.length;
+
+  // Calculate percentage changes
+  const calculateChange = (current: number, previous: number): { change: string; trend: 'up' | 'down' | 'neutral' } => {
+    if (previous === 0) {
+      if (current === 0) return { change: '0%', trend: 'neutral' };
+      return { change: '+100%', trend: 'up' };
+    }
+    const changePercent = ((current - previous) / previous) * 100;
+    const formatted = changePercent >= 0 
+      ? `+${changePercent.toFixed(1)}%` 
+      : `${changePercent.toFixed(1)}%`;
+    return { 
+      change: formatted, 
+      trend: changePercent >= 0 ? 'up' : 'down' 
+    };
+  };
+
+  const revenueChange = calculateChange(currentRevenue, previousRevenue);
+  const ordersChange = calculateChange(currentOrderCount, previousOrderCount);
+  const customersChange = calculateChange(currentCustomerCount, previousCustomerCount);
+  const productsChange = calculateChange(currentProductCount, previousProductCount);
+
+  const stats = [
+    { 
+      label: 'Total Revenue', 
+      value: `₹${totalRevenue.toLocaleString()}`, 
+      icon: IndianRupee, 
+      change: revenueChange.change,
+      trend: revenueChange.trend
+    },
+    { 
+      label: 'Total Orders', 
+      value: totalOrders.toString(), 
+      icon: ShoppingCart, 
+      change: ordersChange.change,
+      trend: ordersChange.trend
+    },
+    { 
+      label: 'Total Customers', 
+      value: totalCustomers.toString(), 
+      icon: Users, 
+      change: customersChange.change,
+      trend: customersChange.trend
+    },
+    { 
+      label: 'Total Products', 
+      value: totalProducts.toString(), 
+      icon: Package, 
+      change: productsChange.change,
+      trend: productsChange.trend
+    },
+  ];
+
+  // Last 7 days revenue trend
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const date = subDays(new Date(), 6 - i);
     const dayStart = startOfDay(date);
@@ -73,37 +177,6 @@ export default function AdminDashboard() {
   // Low stock products
   const lowStockProducts = products?.filter(p => p.stock_quantity <= p.low_stock_threshold).slice(0, 5) || [];
 
-  const stats = [
-    { 
-      label: 'Total Revenue', 
-      value: `₹${totalRevenue.toLocaleString()}`, 
-      icon: IndianRupee, 
-      change: '+12%',
-      trend: 'up'
-    },
-    { 
-      label: 'Total Orders', 
-      value: totalOrders.toString(), 
-      icon: ShoppingCart, 
-      change: '+8%',
-      trend: 'up'
-    },
-    { 
-      label: 'Total Customers', 
-      value: totalCustomers.toString(), 
-      icon: Users, 
-      change: '+5%',
-      trend: 'up'
-    },
-    { 
-      label: 'Total Products', 
-      value: totalProducts.toString(), 
-      icon: Package, 
-      change: '+2%',
-      trend: 'up'
-    },
-  ];
-
   const chartConfig = {
     revenue: {
       label: "Revenue",
@@ -139,13 +212,16 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-1 mt-1">
                 {stat.trend === 'up' ? (
                   <ArrowUpRight className="w-4 h-4 text-green-500" />
-                ) : (
+                ) : stat.trend === 'down' ? (
                   <ArrowDownRight className="w-4 h-4 text-red-500" />
-                )}
-                <span className={`text-xs ${stat.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+                ) : null}
+                <span className={`text-xs ${
+                  stat.trend === 'up' ? 'text-green-500' : 
+                  stat.trend === 'down' ? 'text-red-500' : 'text-muted-foreground'
+                }`}>
                   {stat.change}
                 </span>
-                <span className="text-xs text-muted-foreground">from last month</span>
+                <span className="text-xs text-muted-foreground">vs last 30 days</span>
               </div>
             </CardContent>
           </Card>
