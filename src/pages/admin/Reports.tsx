@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BarChart3, TrendingUp, TrendingDown, Package, Users, ShoppingCart, IndianRupee, Download } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, Package, Users, ShoppingCart, IndianRupee, Download, FileText, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,11 +12,14 @@ import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
 import { useCustomers } from '@/hooks/useCustomers';
 import { format, subDays, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval } from 'date-fns';
+import { jsPDF } from 'jspdf';
+import { toast } from 'sonner';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function AdminReports() {
   const [dateRange, setDateRange] = useState('30');
+  const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
   
   const { data: orders, isLoading: ordersLoading } = useOrders();
   const { data: products, isLoading: productsLoading } = useProducts();
@@ -48,6 +51,7 @@ export default function AdminReports() {
     );
     return {
       date: format(date, 'MMM dd'),
+      fullDate: format(date, 'yyyy-MM-dd'),
       revenue: dayOrders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0),
       orders: dayOrders.length,
     };
@@ -87,6 +91,178 @@ export default function AdminReports() {
   }, {});
   const paymentMethodData = Object.entries(paymentMethods).map(([name, value]) => ({ name, value }));
   
+  // Export to PDF
+  const exportToPDF = async () => {
+    setExporting('pdf');
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Header
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Sales Report', pageWidth / 2, 20, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Period: Last ${dateRange} Days`, pageWidth / 2, 28, { align: 'center' });
+      doc.text(`Generated: ${format(new Date(), 'dd MMM yyyy, hh:mm a')}`, pageWidth / 2, 35, { align: 'center' });
+      
+      // Summary Section
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Summary', 14, 50);
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      const summaryData = [
+        ['Total Revenue', `₹${totalRevenue.toLocaleString()}`],
+        ['Total Orders', totalOrders.toString()],
+        ['Avg. Order Value', `₹${averageOrderValue.toFixed(0)}`],
+        ['Completion Rate', `${conversionRate.toFixed(1)}%`],
+      ];
+      
+      let yPos = 58;
+      summaryData.forEach(([label, value]) => {
+        doc.text(`${label}:`, 14, yPos);
+        doc.text(value, 80, yPos);
+        yPos += 7;
+      });
+      
+      // Order Status Distribution
+      yPos += 10;
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Order Status Distribution', 14, yPos);
+      
+      yPos += 10;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Status', 14, yPos);
+      doc.text('Count', 80, yPos);
+      doc.text('Percentage', 120, yPos);
+      
+      doc.setFont('helvetica', 'normal');
+      ordersByStatus.forEach(status => {
+        yPos += 7;
+        const percentage = totalOrders > 0 ? ((status.value / totalOrders) * 100).toFixed(1) : '0';
+        doc.text(status.name, 14, yPos);
+        doc.text(status.value.toString(), 80, yPos);
+        doc.text(`${percentage}%`, 120, yPos);
+      });
+      
+      // Top Products
+      yPos += 15;
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Top 10 Products', 14, yPos);
+      
+      yPos += 10;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('#', 14, yPos);
+      doc.text('Product', 25, yPos);
+      doc.text('Qty', 130, yPos);
+      doc.text('Revenue', 155, yPos);
+      
+      doc.setFont('helvetica', 'normal');
+      topProducts.forEach((product, index) => {
+        yPos += 7;
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.text(`${index + 1}`, 14, yPos);
+        doc.text(product.name.substring(0, 40), 25, yPos);
+        doc.text(product.quantity.toString(), 130, yPos);
+        doc.text(`₹${product.revenue.toLocaleString()}`, 155, yPos);
+      });
+      
+      // Footer
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(128);
+        doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, 290, { align: 'center' });
+      }
+      
+      doc.save(`sales_report_last_${dateRange}_days.pdf`);
+      toast.success('PDF report downloaded successfully!');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('Failed to generate PDF');
+    } finally {
+      setExporting(null);
+    }
+  };
+  
+  // Export to Excel (CSV)
+  const exportToExcel = async () => {
+    setExporting('excel');
+    try {
+      let csvContent = '';
+      
+      // Header
+      csvContent += `Sales Report - Last ${dateRange} Days\n`;
+      csvContent += `Generated: ${format(new Date(), 'dd MMM yyyy, hh:mm a')}\n\n`;
+      
+      // Summary
+      csvContent += 'SUMMARY\n';
+      csvContent += `Total Revenue,₹${totalRevenue.toLocaleString()}\n`;
+      csvContent += `Total Orders,${totalOrders}\n`;
+      csvContent += `Avg. Order Value,₹${averageOrderValue.toFixed(0)}\n`;
+      csvContent += `Completion Rate,${conversionRate.toFixed(1)}%\n\n`;
+      
+      // Daily Revenue
+      csvContent += 'DAILY REVENUE\n';
+      csvContent += 'Date,Revenue,Orders\n';
+      revenueByDay.forEach(day => {
+        csvContent += `${day.fullDate},${day.revenue},${day.orders}\n`;
+      });
+      csvContent += '\n';
+      
+      // Order Status
+      csvContent += 'ORDER STATUS DISTRIBUTION\n';
+      csvContent += 'Status,Count,Percentage\n';
+      ordersByStatus.forEach(status => {
+        const percentage = totalOrders > 0 ? ((status.value / totalOrders) * 100).toFixed(1) : '0';
+        csvContent += `${status.name},${status.value},${percentage}%\n`;
+      });
+      csvContent += '\n';
+      
+      // Top Products
+      csvContent += 'TOP SELLING PRODUCTS\n';
+      csvContent += 'Rank,Product,Quantity,Revenue\n';
+      topProducts.forEach((product, index) => {
+        csvContent += `${index + 1},"${product.name}",${product.quantity},${product.revenue}\n`;
+      });
+      csvContent += '\n';
+      
+      // Payment Methods
+      csvContent += 'PAYMENT METHODS\n';
+      csvContent += 'Method,Count\n';
+      paymentMethodData.forEach(method => {
+        csvContent += `${method.name},${method.value}\n`;
+      });
+      
+      // Download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `sales_report_last_${dateRange}_days.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      
+      toast.success('Excel report downloaded successfully!');
+    } catch (error) {
+      console.error('Excel export error:', error);
+      toast.error('Failed to generate Excel file');
+    } finally {
+      setExporting(null);
+    }
+  };
+  
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -101,14 +277,14 @@ export default function AdminReports() {
   
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Reports</h1>
           <p className="text-muted-foreground">Analytics and business insights</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 flex-wrap">
           <Select value={dateRange} onValueChange={setDateRange}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[150px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -118,6 +294,30 @@ export default function AdminReports() {
               <SelectItem value="365">Last year</SelectItem>
             </SelectContent>
           </Select>
+          <Button 
+            variant="outline" 
+            onClick={exportToPDF}
+            disabled={exporting !== null}
+          >
+            {exporting === 'pdf' ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <FileText className="w-4 h-4 mr-2" />
+            )}
+            Export PDF
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={exportToExcel}
+            disabled={exporting !== null}
+          >
+            {exporting === 'excel' ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4 mr-2" />
+            )}
+            Export Excel
+          </Button>
         </div>
       </div>
       
