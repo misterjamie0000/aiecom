@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom';
 import { Sparkles, Mail, Phone, MapPin, Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { usePublicCmsPages } from '@/hooks/usePublicCmsPage';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const { data: cmsPages } = usePublicCmsPages();
 
   const footerLinks = {
     shop: [
@@ -19,17 +21,12 @@ export default function Footer() {
       { label: 'Body Care', href: '/category/body-care' },
       { label: 'Personal Hygiene', href: '/category/personal-hygiene' },
     ],
-    support: [
-      { label: 'Contact Us', href: '/contact-us' },
-      { label: 'FAQs', href: '/faqs' },
-      { label: 'Shipping Policy', href: '/shipping-policy' },
-      { label: 'Return Policy', href: '/return-policy' },
-    ],
-    company: [
-      { label: 'About Us', href: '/about-us' },
-      { label: 'Privacy Policy', href: '/privacy-policy' },
-      { label: 'Terms & Conditions', href: '/terms-and-conditions' },
-    ],
+    support: cmsPages?.filter(p => 
+      ['contact-us', 'faqs', 'shipping-policy', 'return-policy'].includes(p.slug)
+    ).map(p => ({ label: p.title, href: `/${p.slug}` })) || [],
+    company: cmsPages?.filter(p => 
+      ['about-us', 'privacy-policy', 'terms-and-conditions'].includes(p.slug)
+    ).map(p => ({ label: p.title, href: `/${p.slug}` })) || [],
   };
 
   const socialLinks = [

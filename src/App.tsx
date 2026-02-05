@@ -32,6 +32,7 @@ import Addresses from "./pages/account/Addresses";
 
 // Standalone Pages
 import Orders from "./pages/Orders";
+import CmsPage from "./pages/CmsPage";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -89,6 +90,7 @@ const App = () => (
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/search" element={<Search />} />
               <Route path="/orders" element={<Orders />} />
+              <Route path="/:slug" element={<CmsPage />} />
               
               {/* Account Routes with nested layout */}
               <Route path="/account" element={<AccountLayout />}>
