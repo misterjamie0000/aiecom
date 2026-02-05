@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings as SettingsIcon, Lock, Bell, Shield, Loader2 } from 'lucide-react';
+import { Lock, Bell, Shield, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/hooks/useNotificationPreferences';
 
 export default function Settings() {
   const { user, signOut } = useAuth();
@@ -30,11 +31,40 @@ export default function Settings() {
     confirmPassword: '',
   });
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Notification preferences from database
+  const { data: savedPreferences, isLoading: isLoadingPreferences } = useNotificationPreferences();
+  const updatePreferences = useUpdateNotificationPreferences();
+  
   const [notifications, setNotifications] = useState({
     orderUpdates: true,
     promotions: false,
     newsletter: true,
   });
+
+  // Sync local state with database
+  useEffect(() => {
+    if (savedPreferences) {
+      setNotifications({
+        orderUpdates: savedPreferences.order_updates,
+        promotions: savedPreferences.promotions,
+        newsletter: savedPreferences.newsletter,
+      });
+    }
+  }, [savedPreferences]);
+
+  // Save preferences when toggled
+  const handleNotificationChange = (key: 'orderUpdates' | 'promotions' | 'newsletter', value: boolean) => {
+    const newNotifications = { ...notifications, [key]: value };
+    setNotifications(newNotifications);
+    
+    // Save to database
+    updatePreferences.mutate({
+      order_updates: newNotifications.orderUpdates,
+      promotions: newNotifications.promotions,
+      newsletter: newNotifications.newsletter,
+    });
+  };
 
   const handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -148,7 +178,8 @@ export default function Settings() {
             </div>
             <Switch
               checked={notifications.orderUpdates}
-              onCheckedChange={(checked) => setNotifications({ ...notifications, orderUpdates: checked })}
+              onCheckedChange={(checked) => handleNotificationChange('orderUpdates', checked)}
+              disabled={updatePreferences.isPending}
             />
           </div>
           <Separator />
@@ -161,7 +192,8 @@ export default function Settings() {
             </div>
             <Switch
               checked={notifications.promotions}
-              onCheckedChange={(checked) => setNotifications({ ...notifications, promotions: checked })}
+              onCheckedChange={(checked) => handleNotificationChange('promotions', checked)}
+              disabled={updatePreferences.isPending}
             />
           </div>
           <Separator />
@@ -174,7 +206,8 @@ export default function Settings() {
             </div>
             <Switch
               checked={notifications.newsletter}
-              onCheckedChange={(checked) => setNotifications({ ...notifications, newsletter: checked })}
+              onCheckedChange={(checked) => handleNotificationChange('newsletter', checked)}
+              disabled={updatePreferences.isPending}
             />
           </div>
         </CardContent>
