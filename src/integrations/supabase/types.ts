@@ -1707,6 +1707,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_notification_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          newsletter: boolean
+          order_updates: boolean
+          promotions: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          newsletter?: boolean
+          order_updates?: boolean
+          promotions?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          newsletter?: boolean
+          order_updates?: boolean
+          promotions?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_product_views: {
         Row: {
           created_at: string
