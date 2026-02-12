@@ -37,10 +37,12 @@ import {
   PackageOpen,
   Percent,
   Brain,
+  ReceiptText,
 } from 'lucide-react';
 
 const allSidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin', feature: null },
+  { icon: ReceiptText, label: 'POS', href: '/admin/pos', feature: null },
   { icon: ShoppingCart, label: 'Orders', href: '/admin/orders', feature: null },
   { icon: Package, label: 'Products', href: '/admin/products', feature: null },
   { icon: Warehouse, label: 'Inventory', href: '/admin/inventory', feature: null },

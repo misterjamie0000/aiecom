@@ -62,6 +62,7 @@ import AdminFlashSales from "./pages/admin/FlashSales";
 import AdminBundles from "./pages/admin/Bundles";
 import AdminBxgyOffers from "./pages/admin/BxgyOffers";
 import AdminRecommendations from "./pages/admin/Recommendations";
+import AdminPOS from "./pages/admin/POS";
 
 const queryClient = new QueryClient();
 
@@ -129,6 +130,7 @@ const App = () => (
               <Route path="notifications" element={<AdminNotifications />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="export" element={<AdminExportCenter />} />
+              <Route path="pos" element={<AdminPOS />} />
             </Route>
 
             {/* 404 */}
