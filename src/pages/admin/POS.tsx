@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,6 +21,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import {
   Search,
@@ -39,6 +48,8 @@ import {
   CheckCircle2,
   ReceiptText,
   ScanBarcode,
+  History,
+  Eye,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Tables } from '@/integrations/supabase/types';
@@ -81,6 +92,10 @@ export default function AdminPOS() {
   const searchRef = useRef<HTMLInputElement>(null);
   const receiptRef = useRef<HTMLDivElement>(null);
 
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState('new-sale');
+  const [viewingOrder, setViewingOrder] = useState<any>(null);
+
   const { data: products } = useQuery({
     queryKey: ['pos-products'],
     queryFn: async () => {
@@ -90,6 +105,21 @@ export default function AdminPOS() {
         .eq('is_active', true)
         .gt('stock_quantity', 0)
         .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch POS orders (orders with 'POS' in notes)
+  const { data: posOrders, isLoading: ordersLoading } = useQuery({
+    queryKey: ['pos-orders'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, order_items(*)')
+        .like('notes', 'POS Order%')
+        .order('created_at', { ascending: false })
+        .limit(50);
       if (error) throw error;
       return data;
     },
@@ -259,6 +289,7 @@ export default function AdminPOS() {
       setShowPayment(false);
       setShowReceipt(true);
       clearCart();
+      queryClient.invalidateQueries({ queryKey: ['pos-orders'] });
       toast.success('Payment processed successfully!');
     } catch (error: any) {
       toast.error('Failed to process order: ' + error.message);
@@ -302,7 +333,25 @@ export default function AdminPOS() {
   };
 
   return (
-    <div className="h-[calc(100vh-7rem)] flex flex-col lg:flex-row gap-4 overflow-hidden">
+    <div className="h-[calc(100vh-7rem)] flex flex-col overflow-hidden">
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 overflow-hidden">
+        <TabsList className="w-fit mb-4 shrink-0">
+          <TabsTrigger value="new-sale" className="gap-2">
+            <ShoppingCart className="w-4 h-4" />
+            New Sale
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="gap-2">
+            <History className="w-4 h-4" />
+            POS Orders
+            {posOrders?.length ? (
+              <Badge variant="secondary" className="ml-1 text-xs">{posOrders.length}</Badge>
+            ) : null}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="new-sale" className="flex-1 overflow-hidden mt-0">
+          <div className="h-full flex flex-col lg:flex-row gap-4 overflow-hidden">
       {/* Left: Product Search & Grid */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
@@ -548,6 +597,151 @@ export default function AdminPOS() {
           </div>
         )}
       </div>
+          </div>
+        </TabsContent>
+
+        {/* POS Orders Tab */}
+        <TabsContent value="orders" className="flex-1 overflow-hidden mt-0">
+          <div className="bg-card rounded-2xl border border-border h-full flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <History className="w-5 h-5 text-primary" />
+                <h2 className="font-bold text-lg">Recent POS Orders</h2>
+              </div>
+              <Badge variant="secondary">{posOrders?.length || 0} orders</Badge>
+            </div>
+            <ScrollArea className="flex-1">
+              {ordersLoading ? (
+                <div className="flex items-center justify-center py-20">
+                  <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                </div>
+              ) : !posOrders?.length ? (
+                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                  <Receipt className="w-12 h-12 mb-3 opacity-30" />
+                  <p className="font-medium">No POS orders yet</p>
+                  <p className="text-sm">Orders created from POS will appear here</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order #</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Items</TableHead>
+                      <TableHead>Payment</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {posOrders.map(order => {
+                      const shippingAddr = order.shipping_address as any;
+                      const custName = shippingAddr?.full_name || 'Walk-in';
+                      return (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium font-mono text-sm">{order.order_number}</TableCell>
+                          <TableCell className="text-sm">{format(new Date(order.created_at), 'dd MMM yyyy, hh:mm a')}</TableCell>
+                          <TableCell className="text-sm">{custName}</TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{order.order_items?.length || 0} items</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="capitalize">
+                              {order.payment_method === 'cod' ? 'Cash' : order.payment_method || 'N/A'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">₹{Number(order.total_amount).toLocaleString()}</TableCell>
+                          <TableCell>
+                            <Badge className="bg-green-500/10 text-green-600 border-green-200">
+                              {order.payment_status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm" onClick={() => setViewingOrder(order)}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </ScrollArea>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Order Detail Dialog */}
+      <Dialog open={!!viewingOrder} onOpenChange={() => setViewingOrder(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-primary" />
+              Order #{viewingOrder?.order_number}
+            </DialogTitle>
+          </DialogHeader>
+          {viewingOrder && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Date</span>
+                  <p className="font-medium">{format(new Date(viewingOrder.created_at), 'dd MMM yyyy, hh:mm a')}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Customer</span>
+                  <p className="font-medium">{(viewingOrder.shipping_address as any)?.full_name || 'Walk-in'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Payment</span>
+                  <p className="font-medium capitalize">{viewingOrder.payment_method === 'cod' ? 'Cash' : viewingOrder.payment_method}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Status</span>
+                  <p className="font-medium capitalize">{viewingOrder.payment_status}</p>
+                </div>
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <p className="font-medium text-sm">Items</p>
+                {viewingOrder.order_items?.map((item: any) => (
+                  <div key={item.id} className="flex justify-between text-sm">
+                    <div>
+                      <p>{item.product_name}</p>
+                      <p className="text-xs text-muted-foreground">{item.quantity} × ₹{item.unit_price}</p>
+                    </div>
+                    <span className="font-medium">₹{Number(item.total_price).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+              <Separator />
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>₹{Number(viewingOrder.subtotal).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tax</span>
+                  <span>₹{Number(viewingOrder.tax_amount).toFixed(2)}</span>
+                </div>
+                {Number(viewingOrder.discount_amount) > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount</span>
+                    <span>-₹{Number(viewingOrder.discount_amount).toFixed(2)}</span>
+                  </div>
+                )}
+                <Separator />
+                <div className="flex justify-between font-bold text-base">
+                  <span>Total</span>
+                  <span className="text-primary">₹{Number(viewingOrder.total_amount).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Payment Dialog */}
       <Dialog open={showPayment} onOpenChange={setShowPayment}>
@@ -560,13 +754,11 @@ export default function AdminPOS() {
           </DialogHeader>
 
           <div className="space-y-6 py-2">
-            {/* Amount */}
             <div className="text-center py-4 bg-secondary/50 rounded-xl">
               <p className="text-sm text-muted-foreground mb-1">Amount Due</p>
               <p className="text-4xl font-bold text-primary">₹{total.toFixed(2)}</p>
             </div>
 
-            {/* Payment Method */}
             <div className="space-y-3">
               <p className="text-sm font-medium">Payment Method</p>
               <div className="grid grid-cols-3 gap-3">
@@ -593,7 +785,6 @@ export default function AdminPOS() {
               </div>
             </div>
 
-            {/* Cash-specific: Amount Received */}
             {paymentMethod === 'cash' && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">Amount Received</label>
@@ -605,7 +796,6 @@ export default function AdminPOS() {
                   className="h-12 text-lg text-center font-semibold"
                   autoFocus
                 />
-                {/* Quick amounts */}
                 <div className="flex gap-2">
                   {[Math.ceil(total), Math.ceil(total / 100) * 100, Math.ceil(total / 500) * 500, Math.ceil(total / 1000) * 1000]
                     .filter((v, i, a) => a.indexOf(v) === i && v >= total)
@@ -633,7 +823,6 @@ export default function AdminPOS() {
               </div>
             )}
 
-            {/* Process Button */}
             <Button
               className="w-full h-12 text-base font-semibold rounded-xl gap-2"
               onClick={processPayment}
@@ -668,7 +857,6 @@ export default function AdminPOS() {
           {completedOrder && (
             <>
               <div ref={receiptRef} className="space-y-3 py-2">
-                {/* Store Info */}
                 <div className="text-center">
                   <h3 className="font-bold text-lg">GlowMart</h3>
                   <p className="text-xs text-muted-foreground">Beauty & Wellness Store</p>
@@ -680,7 +868,6 @@ export default function AdminPOS() {
 
                 <Separator className="border-dashed" />
 
-                {/* Customer */}
                 <div className="text-sm">
                   <span className="text-muted-foreground">Customer: </span>
                   <span className="font-medium">{completedOrder.customerName}</span>
@@ -691,7 +878,6 @@ export default function AdminPOS() {
 
                 <Separator className="border-dashed" />
 
-                {/* Items */}
                 <div className="space-y-2">
                   {completedOrder.items.map((item, i) => (
                     <div key={i} className="flex justify-between text-sm">
@@ -710,7 +896,6 @@ export default function AdminPOS() {
 
                 <Separator className="border-dashed" />
 
-                {/* Totals */}
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
@@ -752,7 +937,6 @@ export default function AdminPOS() {
                 </p>
               </div>
 
-              {/* Actions */}
               <div className="flex gap-3 pt-2">
                 <Button
                   variant="outline"
